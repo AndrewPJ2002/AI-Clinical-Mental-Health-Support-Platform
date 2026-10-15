@@ -1,0 +1,102 @@
+{
+  "patients": [
+    {
+      "id": "p001",
+      "name": "Alice Johnson",
+      "age": 29,
+      "email": "alice.johnson@anchoredsupportedservices.com",
+      "assignedTherapist": "t001",
+      "conversations": [
+        {
+          "timestamp": "2024-10-01T10:30:00Z",
+          "type": "ordinary",
+          "text": "I've been feeling anxious at work lately. It's hard to focus."
+        },
+        {
+          "timestamp": "2024-10-02T21:15:00Z",
+          "type": "red_flag",
+          "text": "Last night I had a panic attack and felt like I couldn't breathe."
+        },
+        {
+          "timestamp": "2024-10-03T14:05:00Z",
+          "type": "ordinary",
+          "text": "I tried the breathing exercise you recommended. It helped a little."
+        }
+      ]
+    },
+    {
+      "id": "p002",
+      "name": "Marcus Lee",
+      "age": 35,
+      "email": "marcus.lee@anchoredsupportedservices.com",
+      "assignedTherapist": "t002",
+      "conversations": [
+        {
+          "timestamp": "2024-10-01T09:10:00Z",
+          "type": "ordinary",
+          "text": "Work has been overwhelming. I feel exhausted all the time."
+        },
+        {
+          "timestamp": "2024-10-04T22:40:00Z",
+          "type": "red_flag",
+          "text": "I haven't been sleeping and sometimes I think people would be better off without me."
+        },
+        {
+          "timestamp": "2024-10-05T11:20:00Z",
+          "type": "ordinary",
+          "text": "I scheduled time off like you suggested. Hoping it helps."
+        }
+      ]
+    },
+    {
+      "id": "p003",
+      "name": "Sara Patel",
+      "age": 42,
+      "email": "sara.patel@anchoredsupportedservices.com",
+      "assignedTherapist": "t001",
+      "conversations": [
+        {
+          "timestamp": "2024-10-02T13:00:00Z",
+          "type": "ordinary",
+          "text": "I've been having trouble balancing family and work responsibilities."
+        },
+        {
+          "timestamp": "2024-10-03T20:55:00Z",
+          "type": "ordinary",
+          "text": "I tried journaling like you recommended. It helped me organize my thoughts."
+        },
+        {
+          "timestamp": "2024-10-06T18:30:00Z",
+          "type": "red_flag",
+          "text": "I felt overwhelmed today and had a moment where I just wanted to disappear."
+        }
+      ]
+    }
+  ],
+
+  "therapists": [
+    {
+      "id": "t001",
+      "name": "Dr. Emily Smith",
+      "email": "emilysmith@anchoredsupportedservices.com",
+      "specialty": "Anxiety & Stress",
+      "assignedPatients": ["p001", "p003"]
+    },
+    {
+      "id": "t002",
+      "name": "Dr. Daniel Rivera",
+      "email": "danielrivera@anchoredsupportedservices.com",
+      "specialty": "Depression & Sleep Disorders",
+      "assignedPatients": ["p002"]
+    }
+  ],
+
+  "admins": [
+    {
+      "id": "a001",
+      "name": "Admin User",
+      "email": "admin@anchoredsupportedservices.com",
+      "role": "system_admin"
+    }
+  ]
+}
