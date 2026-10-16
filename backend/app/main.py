@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+import app.db_tables
 from app.database import Base, engine
 from app.auth.router import router as auth_router
 from app.chat.router import router as chat_router
 
-#tables
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title="Mental Health App API")
 
