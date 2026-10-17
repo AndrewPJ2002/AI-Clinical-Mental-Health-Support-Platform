@@ -34,14 +34,14 @@
   position: relative;
   background: var(--burgundy);
   color: white;
-  padding: 32px 0 0;
+  padding: 22px 0 0;
   text-align: center;
 }
 
 .menu-button {
   position: absolute;
-  top: 43px;
-  left: 34px;
+  top: 38px;
+  left: 32px;
 
   width: 30px;
   padding: 0;
@@ -58,12 +58,14 @@
 .menu-button span {
   width: 23px;
   height: 3px;
+
   border-radius: 2px;
   background: white;
 }
 
 .brand-name {
-  margin: 0 0 30px;
+  margin: 0 0 18px;
+
   font-family: var(--serif);
   font-size: 30px;
   line-height: 1;
@@ -73,22 +75,23 @@
 .brand-banner {
   display: block;
 
-  width: calc(100% - 40px);
+  width: calc(100% - 28px);
   height: auto;
 
-  margin: 0 20px;
+  margin: 0 14px;
 
   background: var(--cream);
 }
 
 .brand-tagline {
   margin: 0;
-  padding: 64px 24px 44px;
+  padding: 14px 24px 12px;
 
   font-family: var(--serif);
-  font-size: 38px;
+  font-size: 30px;
   line-height: 1.2;
   font-weight: 400;
+  letter-spacing: 0.2px;
 }
 
 /* LOGIN */
@@ -98,9 +101,9 @@
 
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
 
-  padding: 50px 24px;
+  padding: 32px 24px 50px;
 }
 
 .login-card {
@@ -182,7 +185,6 @@
 
 .login-form input:focus {
   border-color: var(--rose);
-
   box-shadow: 0 0 0 3px rgba(201, 120, 140, 0.12);
 }
 
