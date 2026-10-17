@@ -1,0 +1,296 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500&family=Montserrat:wght@400;500;600&display=swap');
+
+:root {
+  --burgundy: #733143;
+  --burgundy-dark: #5f2837;
+  --cream: #faf2ef;
+  --ivory: #fffdfb;
+  --rose: #c9788c;
+  --sage: #7d8848;
+  --text: #554744;
+  --muted: #81716d;
+  --border: #e7d8d4;
+
+  --serif: 'Cormorant Garamond', Georgia, serif;
+  --sans: 'Montserrat', Arial, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.app-page {
+  min-height: 100vh;
+  background: var(--cream);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  font-family: var(--sans);
+}
+
+/* BRAND AREA */
+
+.brand-header {
+  position: relative;
+  background: var(--burgundy);
+  color: white;
+  padding: 32px 0 0;
+  text-align: center;
+}
+
+.menu-button {
+  position: absolute;
+  top: 43px;
+  left: 34px;
+
+  width: 30px;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+.menu-button span {
+  width: 23px;
+  height: 3px;
+  border-radius: 2px;
+  background: white;
+}
+
+.brand-name {
+  margin: 0 0 30px;
+  font-family: var(--serif);
+  font-size: 30px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.brand-banner {
+  display: block;
+
+  width: calc(100% - 40px);
+  height: auto;
+
+  margin: 0 20px;
+
+  background: var(--cream);
+}
+
+.brand-tagline {
+  margin: 0;
+  padding: 64px 24px 44px;
+
+  font-family: var(--serif);
+  font-size: 38px;
+  line-height: 1.2;
+  font-weight: 400;
+}
+
+/* LOGIN */
+
+.login-section {
+  flex: 1;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  padding: 50px 24px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 460px;
+
+  padding: 42px;
+
+  background: var(--ivory);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+
+  box-shadow: 0 18px 45px rgba(84, 55, 55, 0.08);
+
+  text-align: center;
+}
+
+.eyebrow {
+  margin: 0 0 10px;
+
+  color: var(--sage);
+
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 2px;
+}
+
+.login-card h1 {
+  margin: 0;
+
+  color: var(--burgundy);
+
+  font-family: var(--serif);
+  font-size: 50px;
+  line-height: 1;
+  font-weight: 400;
+}
+
+.login-subtitle {
+  margin: 14px 0 0;
+
+  color: var(--muted);
+
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  margin-top: 28px;
+
+  text-align: left;
+}
+
+.login-form label {
+  color: var(--text);
+
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.login-form input {
+  width: 100%;
+
+  padding: 14px;
+
+  border: 1px solid var(--border);
+  border-radius: 9px;
+
+  background: white;
+  color: var(--text);
+
+  font-size: 15px;
+  outline: none;
+}
+
+.login-form input:focus {
+  border-color: var(--rose);
+
+  box-shadow: 0 0 0 3px rgba(201, 120, 140, 0.12);
+}
+
+/* PASSWORD */
+
+.password-field {
+  position: relative;
+}
+
+.password-field input {
+  padding-right: 48px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 13px;
+
+  width: 28px;
+  height: 28px;
+
+  padding: 4px;
+
+  transform: translateY(-50%);
+
+  border: none;
+  background: transparent;
+
+  color: var(--burgundy);
+
+  cursor: pointer;
+}
+
+.password-toggle svg {
+  width: 20px;
+  height: 20px;
+
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* BUTTONS */
+
+.sign-in-button {
+  margin-top: 10px;
+  padding: 14px;
+
+  border: none;
+  border-radius: 9px;
+
+  background: var(--burgundy);
+  color: white;
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.sign-in-button:hover {
+  background: var(--burgundy-dark);
+}
+
+.forgot-password {
+  margin-top: 18px;
+
+  border: none;
+  background: transparent;
+
+  color: var(--burgundy);
+
+  font-size: 14px;
+
+  cursor: pointer;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.account-prompt {
+  margin: 20px 0 12px;
+
+  color: var(--muted);
+
+  font-size: 14px;
+}
+
+.create-account {
+  width: 100%;
+
+  padding: 13px;
+
+  border: 1px solid var(--burgundy);
+  border-radius: 9px;
+
+  background: transparent;
+  color: var(--burgundy);
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+}
+
+.create-account:hover {
+  background: #fbefef;
+}
