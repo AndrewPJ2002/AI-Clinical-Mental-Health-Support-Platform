@@ -58,7 +58,6 @@
 .menu-button span {
   width: 23px;
   height: 3px;
-
   border-radius: 2px;
   background: white;
 }
@@ -94,7 +93,7 @@
   letter-spacing: 0.2px;
 }
 
-/* LOGIN */
+/* MAIN CONTENT */
 
 .login-section {
   flex: 1;
@@ -105,6 +104,8 @@
 
   padding: 32px 24px 50px;
 }
+
+/* LOGIN CARD */
 
 .login-card {
   width: 100%;
@@ -150,6 +151,8 @@
   font-size: 15px;
   line-height: 1.6;
 }
+
+/* LOGIN FORM */
 
 .login-form {
   display: flex;
@@ -245,10 +248,23 @@
   font-weight: 600;
 
   cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
 }
 
-.sign-in-button:hover {
+.sign-in-button:hover:not(:disabled) {
   background: var(--burgundy-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(95, 40, 55, 0.18);
+}
+
+.sign-in-button:disabled {
+  background: #c9b6bb;
+  color: #f8f4f5;
+  cursor: not-allowed;
 }
 
 .forgot-password {
@@ -291,8 +307,165 @@
   font-weight: 600;
 
   cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease;
 }
 
 .create-account:hover {
-  background: #fbefef;
+  background: var(--burgundy);
+  color: white;
+  transform: translateY(-1px);
+}
+
+/* CONSENT SCREEN */
+
+.consent-card {
+  max-width: 760px;
+  padding: 46px 52px;
+}
+
+.consent-card h1 {
+  font-size: 46px;
+}
+
+.consent-content {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+
+  margin-top: 30px;
+
+  text-align: left;
+}
+
+.consent-item {
+  padding: 17px 20px;
+
+  background: #fcf7f5;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--sage);
+  border-radius: 9px;
+}
+
+.consent-item h3 {
+  margin: 0 0 7px;
+
+  color: var(--burgundy);
+
+  font-family: var(--sans);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.consent-item p {
+  margin: 0;
+
+  color: var(--text);
+
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.consent-checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+
+  margin: 26px 0 10px;
+
+  padding: 17px 18px;
+
+  background: #f7f1ed;
+  border-radius: 9px;
+
+  color: var(--text);
+
+  text-align: left;
+  font-size: 14px;
+  line-height: 1.6;
+
+  cursor: pointer;
+}
+
+.consent-checkbox input {
+  width: 18px;
+  height: 18px;
+
+  margin-top: 2px;
+
+  accent-color: var(--burgundy);
+
+  flex-shrink: 0;
+}
+
+.consent-card > .sign-in-button {
+  width: 100%;
+  margin-top: 16px;
+}
+
+/* DECLINE BUTTON */
+
+.consent-card > .forgot-password {
+  display: block;
+
+  width: 100%;
+
+  margin: 12px 0 0;
+  padding: 13px;
+
+  border: 1px solid var(--burgundy);
+  border-radius: 9px;
+
+  background: white;
+  color: var(--burgundy);
+
+  font-size: 15px;
+  font-weight: 600;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.consent-card > .forgot-password:hover {
+  background: var(--burgundy);
+  color: white;
+
+  text-decoration: none;
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 5px 12px rgba(95, 40, 55, 0.18);
+}
+
+.consent-card > .forgot-password:active {
+  transform: translateY(0);
+}
+
+/* SMALLER SCREENS */
+
+@media (max-width: 650px) {
+  .brand-name {
+    font-size: 26px;
+  }
+
+  .brand-tagline {
+    font-size: 25px;
+  }
+
+  .login-card,
+  .consent-card {
+    padding: 32px 24px;
+  }
+
+  .consent-card h1 {
+    font-size: 40px;
+  }
 }
