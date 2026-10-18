@@ -1,8 +1,11 @@
 import { useState } from 'react'
 import './ChatScreen.css'
+import './HistoryPanel.css'
+import HistoryPanel from './HistoryPanel'
 
 function ChatScreen() {
   const [message, setMessage] = useState('')
+  const [showHistory, setShowHistory] = useState(false)
 
   const [messages, setMessages] = useState([
     {
@@ -58,6 +61,7 @@ function ChatScreen() {
     ])
 
     setMessage('')
+    setShowHistory(false)
   }
 
   return (
@@ -93,89 +97,98 @@ function ChatScreen() {
           <button
             type="button"
             className="chat-secondary-button"
+            onClick={() => setShowHistory(true)}
           >
             History
           </button>
         </div>
       </header>
 
-      <section className="chat-workspace">
-        <div className="chat-intro">
-          <p className="chat-eyebrow">
-            YOUR SUPPORT SPACE
-          </p>
+      <div className="chat-layout">
+        <section className="chat-workspace">
+          <div className="chat-intro">
+            <p className="chat-eyebrow">
+              YOUR SUPPORT SPACE
+            </p>
 
-          <h1>How are you feeling today?</h1>
+            <h1>How are you feeling today?</h1>
 
-          <p>
-            Use this space to reflect, talk through what is on your
-            mind, or ask for support between therapy sessions.
-          </p>
-        </div>
-
-        <div className="chat-window">
-          <div className="message-list">
-            {messages.map((chatMessage) => (
-              <div
-                key={chatMessage.id}
-                className={
-                  chatMessage.sender === 'user'
-                    ? 'message-row user-message-row'
-                    : 'message-row ai-message-row'
-                }
-              >
-                <div
-                  className={
-                    chatMessage.sender === 'user'
-                      ? 'message-bubble user-message'
-                      : 'message-bubble ai-message'
-                  }
-                >
-                  <span className="message-label">
-                    {chatMessage.sender === 'user'
-                      ? 'You'
-                      : 'AI Support'}
-                  </span>
-
-                  <p>{chatMessage.text}</p>
-                </div>
-              </div>
-            ))}
+            <p>
+              Use this space to reflect, talk through what is on your
+              mind, or ask for support between therapy sessions.
+            </p>
           </div>
 
-          <form
-            className="chat-input-area"
-            onSubmit={handleSend}
-          >
-            <textarea
-              value={message}
-              onChange={(event) =>
-                setMessage(event.target.value)
-              }
-              placeholder="Share what’s on your mind..."
-              rows="3"
-            />
+          <div className="chat-window">
+            <div className="message-list">
+              {messages.map((chatMessage) => (
+                <div
+                  key={chatMessage.id}
+                  className={
+                    chatMessage.sender === 'user'
+                      ? 'message-row user-message-row'
+                      : 'message-row ai-message-row'
+                  }
+                >
+                  <div
+                    className={
+                      chatMessage.sender === 'user'
+                        ? 'message-bubble user-message'
+                        : 'message-bubble ai-message'
+                    }
+                  >
+                    <span className="message-label">
+                      {chatMessage.sender === 'user'
+                        ? 'You'
+                        : 'AI Support'}
+                    </span>
 
-            <button
-              type="submit"
-              className="chat-send-button"
-              disabled={!message.trim()}
+                    <p>{chatMessage.text}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <form
+              className="chat-input-area"
+              onSubmit={handleSend}
             >
-              Send
-            </button>
-          </form>
-        </div>
+              <textarea
+                value={message}
+                onChange={(event) =>
+                  setMessage(event.target.value)
+                }
+                placeholder="Share what’s on your mind..."
+                rows="3"
+              />
 
-        <div className="chat-safety-note">
-          <strong>Need immediate help?</strong>
-          <span>
-            {' '}
-            This AI support tool is not an emergency service. Call
-            911 for an emergency or call or text 988 for crisis
-            support.
-          </span>
-        </div>
-      </section>
+              <button
+                type="submit"
+                className="chat-send-button"
+                disabled={!message.trim()}
+              >
+                Send
+              </button>
+            </form>
+          </div>
+
+          <div className="chat-safety-note">
+            <strong>Need immediate help?</strong>
+            <span>
+              {' '}
+              This AI support tool is not an emergency service. Call
+              911 for an emergency or call or text 988 for crisis
+              support.
+            </span>
+          </div>
+        </section>
+
+        {showHistory && (
+          <HistoryPanel
+            onClose={() => setShowHistory(false)}
+          />
+        )}
+      </div>
     </main>
   )
 }
