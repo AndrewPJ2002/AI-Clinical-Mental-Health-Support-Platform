@@ -469,3 +469,16 @@
     font-size: 40px;
   }
 }
+
+
+.auth-error {
+  color: #b42318;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0.5rem 0;
+}
+
+.sign-in-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
