@@ -18,3 +18,8 @@
 8. Return the assistant reply to React.
 
 '''
+
+
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/chat", tags=["Chat"])

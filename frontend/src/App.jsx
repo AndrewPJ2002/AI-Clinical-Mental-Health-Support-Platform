@@ -1,35 +1,109 @@
+
 import { useState } from 'react'
 import './App.css'
 
+const API_URL = 'http://127.0.0.1:8000'
+
 function App() {
-  const [showPassword, setShowPassword] = useState(false)
   const [screen, setScreen] = useState('login')
+  const [showPassword, setShowPassword] = useState(false)
   const [consentAccepted, setConsentAccepted] = useState(false)
+  const [isRegistering, setIsRegistering] = useState(false)
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  function resetMessages() {
+    setError('')
+    setLoading(false)
+  }
+
+  async function handleAuth(event) {
+    event.preventDefault()
+    setError('')
+
+    if (isRegistering && password.length < 12) {
+      setError('Your password must contain at least 12 characters.')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      const endpoint = isRegistering ? '/auth/register' : '/auth/login'
+
+      const payload = isRegistering
+        ? {
+            first_name: firstName.trim(),
+            last_name: lastName.trim(),
+            email: email.trim(),
+            password,
+          }
+        : {
+            email: email.trim(),
+            password,
+          }
+
+      const response = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        const detail = data.detail
+        throw new Error(
+          typeof detail === 'string'
+            ? detail
+            : 'Please check your information and try again.',
+        )
+      }
+
+      if (isRegistering) {
+        setIsRegistering(false)
+        setPassword('')
+        setError('')
+        setScreen('login')
+        alert('Account created! Please sign in with your new credentials.')
+      } else {
+        sessionStorage.setItem('access_token', data.access_token)
+        setConsentAccepted(false)
+        setScreen('consent')
+      }
+    } catch (err) {
+      setError(
+        err instanceof TypeError
+          ? 'Could not connect to the backend. Check that FastAPI is running on port 8000.'
+          : err.message,
+      )
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  function logout() {
+    sessionStorage.removeItem('access_token')
+    setConsentAccepted(false)
+    setPassword('')
+    setError('')
+    setScreen('login')
+  }
 
   if (screen === 'chat') {
     return (
       <main className="app-page">
         <header className="brand-header">
-          <button
-            type="button"
-            className="menu-button"
-            aria-label="Open navigation"
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-
-          <h2 className="brand-name">
-            Anchored Support Services
-          </h2>
-
+          <h2 className="brand-name">Anchored Support Services</h2>
           <img
             src="/anchored-support-services-banner.png"
             alt="Anchored Support Services"
             className="brand-banner"
           />
-
           <p className="brand-tagline">
             Anchor Yourself in Healing and Community.
           </p>
@@ -38,31 +112,22 @@ function App() {
         <section className="login-section">
           <div className="login-card consent-card">
             <p className="eyebrow">YOUR SUPPORT SPACE</p>
-
             <h1>How are you feeling today?</h1>
-
             <p className="login-subtitle">
               You can use this space to reflect, talk through what is on your
               mind, or ask for support between therapy sessions.
             </p>
-
             <div className="consent-content">
               <div className="consent-item">
                 <h3>Your conversation will appear here</h3>
                 <p>
-                  This is the beginning of your conversation. Once the AI
-                  connection is added, messages between you and the support
-                  assistant will appear in this area.
+                  The chat API has not been implemented yet. This screen is
+                  currently a placeholder and does not send messages to an AI.
                 </p>
               </div>
             </div>
-
-            <button
-              type="button"
-              className="forgot-password"
-              onClick={() => setScreen('reminder')}
-            >
-              Back
+            <button type="button" className="forgot-password" onClick={logout}>
+              Sign Out
             </button>
           </div>
         </section>
@@ -74,26 +139,12 @@ function App() {
     return (
       <main className="app-page">
         <header className="brand-header">
-          <button
-            type="button"
-            className="menu-button"
-            aria-label="Open navigation"
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-
-          <h2 className="brand-name">
-            Anchored Support Services
-          </h2>
-
+          <h2 className="brand-name">Anchored Support Services</h2>
           <img
             src="/anchored-support-services-banner.png"
             alt="Anchored Support Services"
             className="brand-banner"
           />
-
           <p className="brand-tagline">
             Anchor Yourself in Healing and Community.
           </p>
@@ -102,9 +153,7 @@ function App() {
         <section className="login-section">
           <div className="login-card consent-card">
             <p className="eyebrow">BEFORE YOU START CHATTING</p>
-
             <h1>A Quick Reminder</h1>
-
             <p className="login-subtitle">
               This space is here to support you between therapy sessions.
             </p>
@@ -117,31 +166,25 @@ function App() {
                   anything you are not comfortable sharing.
                 </p>
               </div>
-
               <div className="consent-item">
                 <h3>Use this space for non-emergency support</h3>
                 <p>
-                  The AI can help with general reflection, coping strategies,
-                  and supportive conversation, but it is not a replacement for
-                  your therapist.
+                  The AI can help with general reflection and coping strategies,
+                  but it is not a replacement for your therapist.
                 </p>
               </div>
-
               <div className="consent-item">
                 <h3>Your therapist remains part of your care</h3>
                 <p>
-                  Your assigned therapist may review your conversations and
-                  remains the person responsible for clinical decisions and
-                  follow-up.
+                  Your assigned therapist may review conversations when
+                  appropriate and remains responsible for clinical decisions.
                 </p>
               </div>
-
               <div className="consent-item">
                 <h3>Get immediate help during a crisis</h3>
                 <p>
-                  If you are in immediate danger or experiencing an emergency,
-                  call 911 or go to the nearest emergency room. You can also
-                  call or text 988 for crisis support.
+                  If you are in immediate danger, call 911. In the US, call or
+                  text 988 for crisis support.
                 </p>
               </div>
             </div>
@@ -153,7 +196,6 @@ function App() {
             >
               Start Chat
             </button>
-
             <button
               type="button"
               className="forgot-password"
@@ -171,26 +213,12 @@ function App() {
     return (
       <main className="app-page">
         <header className="brand-header">
-          <button
-            type="button"
-            className="menu-button"
-            aria-label="Open navigation"
-          >
-            <span></span>
-            <span></span>
-            <span></span>
-          </button>
-
-          <h2 className="brand-name">
-            Anchored Support Services
-          </h2>
-
+          <h2 className="brand-name">Anchored Support Services</h2>
           <img
             src="/anchored-support-services-banner.png"
             alt="Anchored Support Services"
             className="brand-banner"
           />
-
           <p className="brand-tagline">
             Anchor Yourself in Healing and Community.
           </p>
@@ -199,9 +227,7 @@ function App() {
         <section className="login-section">
           <div className="login-card consent-card">
             <p className="eyebrow">BEFORE YOU BEGIN</p>
-
             <h1>AI Disclosure and Consent</h1>
-
             <p className="login-subtitle">
               Please review this information before using the AI support chat.
             </p>
@@ -214,40 +240,33 @@ function App() {
                   licensed mental health professional.
                 </p>
               </div>
-
               <div className="consent-item">
                 <h3>It does not provide diagnosis or treatment</h3>
                 <p>
-                  The AI is designed to provide supportive conversation and
-                  general wellness guidance. It does not diagnose conditions,
-                  provide treatment, or make clinical decisions.
+                  The AI provides supportive conversation and general wellness
+                  guidance, not diagnosis, treatment, or clinical decisions.
                 </p>
               </div>
-
               <div className="consent-item">
                 <h3>Your therapist may review your conversations</h3>
                 <p>
-                  Conversations are stored as part of this clinician-connected
-                  experience. Your assigned therapist may review your
-                  conversations when appropriate.
+                  Conversations may be stored as part of this clinician-connected
+                  experience and reviewed by your assigned therapist when
+                  appropriate.
                 </p>
               </div>
-
               <div className="consent-item">
                 <h3>Safety concerns may be flagged</h3>
                 <p>
-                  Messages that may indicate a safety concern can be flagged
-                  for review by your assigned therapist. The AI does not make
-                  the final clinical decision.
+                  Messages indicating possible safety concerns may be flagged
+                  for therapist review.
                 </p>
               </div>
-
               <div className="consent-item">
                 <h3>This is not an emergency service</h3>
                 <p>
-                  If you are in immediate danger or experiencing an emergency,
-                  call 911 or go to the nearest emergency room. You can also
-                  call or text 988 for crisis support.
+                  If you are in immediate danger, call 911. In the US, call or
+                  text 988 for crisis support.
                 </p>
               </div>
             </div>
@@ -260,12 +279,16 @@ function App() {
                   setConsentAccepted(event.target.checked)
                 }
               />
-
               <span>
                 I have read and understand the information above, and I agree
                 to use the clinician-connected AI support chat.
               </span>
             </label>
+
+            <p className="login-subtitle">
+              Consent is not yet saved to the backend. We will connect this
+              action before enabling protected chat access.
+            </p>
 
             <button
               type="button"
@@ -275,7 +298,6 @@ function App() {
             >
               Continue
             </button>
-
             <button
               type="button"
               className="forgot-password"
@@ -284,7 +306,7 @@ function App() {
                 setScreen('login')
               }}
             >
-              Decline and Go Back
+              Sign Out
             </button>
           </div>
         </section>
@@ -295,26 +317,12 @@ function App() {
   return (
     <main className="app-page">
       <header className="brand-header">
-        <button
-          type="button"
-          className="menu-button"
-          aria-label="Open navigation"
-        >
-          <span></span>
-          <span></span>
-          <span></span>
-        </button>
-
-        <h2 className="brand-name">
-          Anchored Support Services
-        </h2>
-
+        <h2 className="brand-name">Anchored Support Services</h2>
         <img
           src="/anchored-support-services-banner.png"
           alt="Anchored Support Services"
           className="brand-banner"
         />
-
         <p className="brand-tagline">
           Anchor Yourself in Healing and Community.
         </p>
@@ -323,69 +331,120 @@ function App() {
       <section className="login-section">
         <div className="login-card">
           <p className="eyebrow">PATIENT ACCESS</p>
-
-          <h1>Welcome Back</h1>
-
+          <h1>{isRegistering ? 'Create Your Account' : 'Welcome Back'}</h1>
           <p className="login-subtitle">
-            Sign in to continue to your support space.
+            {isRegistering
+              ? 'Create an account to access your support space.'
+              : 'Sign in to continue to your support space.'}
           </p>
 
-          <form className="login-form">
-            <label htmlFor="email">Email</label>
+          <form className="login-form" onSubmit={handleAuth}>
+            {isRegistering && (
+              <>
+                <label htmlFor="firstName">First name</label>
+                <input
+                  id="firstName"
+                  type="text"
+                  autoComplete="given-name"
+                  value={firstName}
+                  onChange={(event) => setFirstName(event.target.value)}
+                  required
+                />
 
+                <label htmlFor="lastName">Last name</label>
+                <input
+                  id="lastName"
+                  type="text"
+                  autoComplete="family-name"
+                  value={lastName}
+                  onChange={(event) => setLastName(event.target.value)}
+                  required
+                />
+              </>
+            )}
+
+            <label htmlFor="email">Email</label>
             <input
               id="email"
               type="email"
+              autoComplete="email"
               placeholder="you@example.com"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              required
             />
 
             <label htmlFor="password">Password</label>
-
             <div className="password-field">
               <input
                 id="password"
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Enter your password"
+                autoComplete={isRegistering ? 'new-password' : 'current-password'}
+                placeholder={
+                  isRegistering
+                    ? 'At least 12 characters'
+                    : 'Enter your password'
+                }
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+                minLength={isRegistering ? 12 : 1}
               />
-
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? (
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M3 3l18 18M10.6 10.6a2 2 0 002.8 2.8M9.9 4.2A10.8 10.8 0 0112 4c5.5 0 9 5 9 5a17.5 17.5 0 01-3.1 3.5M6.2 6.2C4.2 7.5 3 9 3 9s3.5 5 9 5c1.3 0 2.5-.3 3.6-.7" />
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 24 24" aria-hidden="true">
-                    <path d="M3 12s3.5-5 9-5 9 5 9 5-3.5 5-9 5-9-5-9-5z" />
-                    <circle cx="12" cy="12" r="2.5" />
-                  </svg>
-                )}
+                {showPassword ? 'Hide' : 'Show'}
               </button>
             </div>
 
+            {error && (
+              <p className="auth-error" role="alert">
+                {error}
+              </p>
+            )}
+
             <button
-              type="button"
+              type="submit"
               className="sign-in-button"
-              onClick={() => setScreen('consent')}
+              disabled={loading}
             >
-              Sign In
+              {loading
+                ? 'Please wait...'
+                : isRegistering
+                  ? 'Create Account'
+                  : 'Sign In'}
             </button>
           </form>
 
-          <button type="button" className="forgot-password">
-            Forgot password?
-          </button>
+          {!isRegistering && (
+            <button
+              type="button"
+              className="forgot-password"
+              onClick={() => setError('Password reset is not implemented yet.')}
+            >
+              Forgot password?
+            </button>
+          )}
 
           <p className="account-prompt">
-            Don't have an account?
+            {isRegistering
+              ? 'Already have an account?'
+              : "Don't have an account?"}
           </p>
 
-          <button type="button" className="create-account">
-            Create Account
+          <button
+            type="button"
+            className="create-account"
+            onClick={() => {
+              setIsRegistering(!isRegistering)
+              resetMessages()
+              setPassword('')
+            }}
+          >
+            {isRegistering ? 'Sign In' : 'Create Account'}
           </button>
         </div>
       </section>
