@@ -6,23 +6,14 @@ import HistoryPanel from './HistoryPanel'
 function ChatScreen() {
   const [message, setMessage] = useState('')
   const [showHistory, setShowHistory] = useState(false)
-
-  const [messages, setMessages] = useState([
-    {
-      id: 1,
-      sender: 'ai',
-      text: 'Hi. I’m here to support you between therapy sessions. What would you like to talk about today?',
-    },
-  ])
+  const [messages, setMessages] = useState([])
 
   function handleSend(event) {
     event.preventDefault()
 
     const trimmedMessage = message.trim()
 
-    if (!trimmedMessage) {
-      return
-    }
+    if (!trimmedMessage) return
 
     const userMessage = {
       id: Date.now(),
@@ -52,14 +43,7 @@ function ChatScreen() {
   }
 
   function handleNewConversation() {
-    setMessages([
-      {
-        id: Date.now(),
-        sender: 'ai',
-        text: 'Hi. I’m here to support you between therapy sessions. What would you like to talk about today?',
-      },
-    ])
-
+    setMessages([])
     setMessage('')
     setShowHistory(false)
   }
@@ -86,13 +70,15 @@ function ChatScreen() {
         </div>
 
         <div className="chat-header-actions">
-          <button
-            type="button"
-            className="chat-secondary-button"
-            onClick={handleNewConversation}
-          >
-            New Conversation
-          </button>
+          {messages.length > 0 && (
+            <button
+              type="button"
+              className="chat-secondary-button"
+              onClick={handleNewConversation}
+            >
+              New Conversation
+            </button>
+          )}
 
           <button
             type="button"
@@ -114,40 +100,48 @@ function ChatScreen() {
             <h1>How are you feeling today?</h1>
 
             <p>
-              Use this space to reflect, talk through what is on your
-              mind, or ask for support between therapy sessions.
+              Welcome back. Start a new conversation or continue
+              one from your history.
             </p>
           </div>
 
           <div className="chat-window">
-            <div className="message-list">
-              {messages.map((chatMessage) => (
-                <div
-                  key={chatMessage.id}
-                  className={
-                    chatMessage.sender === 'user'
-                      ? 'message-row user-message-row'
-                      : 'message-row ai-message-row'
-                  }
-                >
+            {messages.length === 0 ? (
+              <div className="chat-empty-state">
+                <p>
+                  When you are ready, share what is on your mind.
+                </p>
+              </div>
+            ) : (
+              <div className="message-list">
+                {messages.map((chatMessage) => (
                   <div
+                    key={chatMessage.id}
                     className={
                       chatMessage.sender === 'user'
-                        ? 'message-bubble user-message'
-                        : 'message-bubble ai-message'
+                        ? 'message-row user-message-row'
+                        : 'message-row ai-message-row'
                     }
                   >
-                    <span className="message-label">
-                      {chatMessage.sender === 'user'
-                        ? 'You'
-                        : 'AI Support'}
-                    </span>
+                    <div
+                      className={
+                        chatMessage.sender === 'user'
+                          ? 'message-bubble user-message'
+                          : 'message-bubble ai-message'
+                      }
+                    >
+                      <span className="message-label">
+                        {chatMessage.sender === 'user'
+                          ? 'You'
+                          : 'AI Support'}
+                      </span>
 
-                    <p>{chatMessage.text}</p>
+                      <p>{chatMessage.text}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             <form
               className="chat-input-area"
@@ -174,11 +168,12 @@ function ChatScreen() {
 
           <div className="chat-safety-note">
             <strong>Need immediate help?</strong>
+
             <span>
               {' '}
-              This AI support tool is not an emergency service. Call
-              911 for an emergency or call or text 988 for crisis
-              support.
+              This AI support tool is not an emergency service.
+              Call 911 for an emergency or call or text 988 for
+              crisis support.
             </span>
           </div>
         </section>
