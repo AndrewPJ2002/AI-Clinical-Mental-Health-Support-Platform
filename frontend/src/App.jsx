@@ -15,6 +15,43 @@ function App() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  
+  // added consent handling
+  const handleConsentContinue = async () => {
+    const token = sessionStorage.getItem("access_token");
+
+    if (!token) {
+      alert("Please log in again.");
+      setScreen("login");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/consent/acknowledge`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          disclosure_version: "v1",
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.detail || "Unable to save consent.");
+      }
+
+      console.log("Consent saved:", data);
+      setScreen("reminder");
+    } catch (error) {
+      console.error("Consent save failed:", error);
+      alert(error.message || "Unable to save consent. Please try again.");
+    }
+  };
+  ///////////////////////////////////////////////////////////
 
   function resetMessages() {
     setError('')
@@ -71,9 +108,36 @@ function App() {
         setScreen('login')
         alert('Account created! Please sign in with your new credentials.')
       } else {
-        sessionStorage.setItem('access_token', data.access_token)
-        setConsentAccepted(false)
-        setScreen('consent')
+        
+sessionStorage.setItem('access_token', data.access_token);
+
+try {
+  const consentResponse = await fetch(`${API_URL}/consent/status`, {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${data.access_token}`,
+    },
+  });
+
+    if (!consentResponse.ok) {
+      throw new Error('Could not check your consent status.');
+    }
+
+    const consentData = await consentResponse.json();
+
+    if (consentData.required) {
+      setConsentAccepted(false);
+      setScreen('consent');
+    } else {
+      // Consent was already recorded for this disclosure version.
+      setConsentAccepted(false);
+      setScreen('reminder');
+    }
+  } catch (error) {
+    console.error('Consent status check failed:', error);
+    alert('We could not verify your consent. Please try again.');
+  }
+
       }
     } catch (err) {
       setError(
@@ -294,7 +358,7 @@ function App() {
               type="button"
               className="sign-in-button"
               disabled={!consentAccepted}
-              onClick={() => setScreen('reminder')}
+              onClick={handleConsentContinue}
             >
               Continue
             </button>

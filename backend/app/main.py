@@ -5,6 +5,7 @@ import app.db_tables
 from app.database import Base, engine
 from app.auth.router import router as auth_router
 from app.chat.router import router as chat_router
+from app.consent.router import router as consent_router
 
 
 app = FastAPI(title="Mental Health App API")
@@ -23,6 +24,7 @@ app.add_middleware(
 
 app.include_router(auth_router)
 app.include_router(chat_router)
+app.include_router(consent_router)
 
 
 @app.get("/health")
