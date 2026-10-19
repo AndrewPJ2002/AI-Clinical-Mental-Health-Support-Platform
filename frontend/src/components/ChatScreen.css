@@ -14,14 +14,19 @@
 
 .chat-page {
   min-height: 100vh;
+
   background: var(--chat-cream);
   color: var(--chat-text);
+
   font-family: var(--chat-sans);
 }
 
 /* HEADER */
 
 .chat-header {
+  position: relative;
+  z-index: 20;
+
   min-height: 82px;
   padding: 14px 30px;
 
@@ -102,6 +107,13 @@
   color: var(--chat-burgundy);
 
   transform: translateY(-1px);
+}
+
+/* PAGE LAYOUT */
+
+.chat-layout {
+  position: relative;
+  width: 100%;
 }
 
 /* MAIN WORKSPACE */
@@ -346,6 +358,27 @@
   color: var(--chat-burgundy);
 }
 
+/* HISTORY DRAWER */
+
+.chat-layout .history-panel {
+  position: fixed;
+
+  top: 82px;
+  right: 0;
+  bottom: 0;
+
+  width: 380px;
+  height: auto;
+
+  overflow-y: auto;
+
+  z-index: 50;
+
+  background: var(--chat-ivory);
+
+  box-shadow: -12px 0 30px rgba(84, 55, 55, 0.18);
+}
+
 /* RESPONSIVE */
 
 @media (max-width: 720px) {
@@ -391,5 +424,14 @@
 
   .chat-send-button {
     width: 100%;
+  }
+
+  .chat-layout .history-panel {
+    top: 0;
+
+    width: 100%;
+    height: 100vh;
+
+    z-index: 100;
   }
 }
