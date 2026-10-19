@@ -118,3 +118,20 @@ class Message(Base):
         nullable=False,
         server_default=func.now(),
     )
+
+
+class ConsentAcknowledgement(Base):
+    __tablename__ = "consent_acknowledgements"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, nullable=False)
+    disclosure_version = Column(String, nullable=False)
+    acknowledged_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
