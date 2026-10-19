@@ -131,7 +131,7 @@ try {
     } else {
       // Consent was already recorded for this disclosure version.
       setConsentAccepted(false);
-      setScreen('reminder');
+      setScreen('chat');
     }
   } catch (error) {
     console.error('Consent status check failed:', error);
