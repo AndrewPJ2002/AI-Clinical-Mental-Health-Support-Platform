@@ -1,0 +1,156 @@
+.history-panel {
+  width: min(360px, 100%);
+  height: 100%;
+
+  padding: 24px;
+
+  background: #fffdfb;
+  border-left: 1px solid #e7d8d4;
+
+  color: #554744;
+
+  font-family: 'Montserrat', Arial, sans-serif;
+}
+
+.history-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.history-eyebrow {
+  margin: 0 0 6px;
+
+  color: #7d8848;
+
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.8px;
+}
+
+.history-header h2 {
+  margin: 0;
+
+  color: #733143;
+
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 30px;
+  line-height: 1.1;
+  font-weight: 400;
+}
+
+.history-close-button {
+  width: 36px;
+  height: 36px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid #e7d8d4;
+  border-radius: 8px;
+
+  background: white;
+  color: #733143;
+
+  font-size: 24px;
+  line-height: 1;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.history-close-button:hover {
+  background: #733143;
+  color: white;
+  border-color: #733143;
+}
+
+.history-description {
+  margin: 18px 0 20px;
+
+  color: #81716d;
+
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.history-item {
+  width: 100%;
+
+  padding: 16px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+
+  border: 1px solid #e7d8d4;
+  border-radius: 10px;
+
+  background: #fcf7f5;
+  color: #554744;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.history-item:hover {
+  background: #f7e9ec;
+  border-color: #c9788c;
+
+  transform: translateY(-1px);
+
+  box-shadow: 0 6px 14px rgba(84, 55, 55, 0.08);
+}
+
+.history-item strong {
+  color: #733143;
+
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.history-date {
+  color: #7d8848;
+
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.history-preview {
+  color: #81716d;
+
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+@media (max-width: 720px) {
+  .history-panel {
+    width: 100%;
+    padding: 20px;
+
+    border-left: none;
+    border-top: 1px solid #e7d8d4;
+  }
+}
