@@ -1,0 +1,7 @@
+Feature Tested, Preconditions, Test Steps, Expected Result, Actual Result, Status
+Logout Functionality, User successfully logged in, "Navigate through the application and locate the logout/sign out option.", A visible logout/sign out button should be available and terminate the user session when selected.,
+    No logout or sign out option is available anywhere in the application., FAIL
+Chat Response Generation, Backend and frontend running, "Open the chat interface, enter a prompt, and submit it.", System should generate a response based on user input., 
+    System displays a placeholder message indicating responses will be generated once backend integration is completed., FAIL
+Conversation History, User logged in and able to create a conversation, "Create a new conversation and check the chat history panel.", New conversation should appear in the conversation history list.,
+    Newly created conversation does not appear in the chat history section., FAIL
