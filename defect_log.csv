@@ -1,0 +1,7 @@
+Summary, Steps to Reproduce, Expected Result, Actual Result, Severity, Status
+No sign out functionality available, "Login with any user account and navigate through the application.", User should be able to sign out using a visible logout/sign out option.,
+    No logout or sign out option exists within the current interface., Medium, Open
+Chat returns placeholder response instead of generating output, "Login, open the chat page, enter a prompt, and submit it.", System should generate a meaningful response based on the prompt.,
+    Application displays a message indicating backend integration has not yet been implemented., Medium, Open
+New conversations are not displayed in chat history,"Login, create a new conversation, and review the chat history panel.",New conversation should be visible in the conversation history list.,
+    Conversation is not added to or displayed in the chat history section., Medium, Open
