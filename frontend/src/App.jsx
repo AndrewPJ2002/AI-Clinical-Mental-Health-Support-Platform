@@ -44,7 +44,7 @@ function App() {
       }
 
       console.log('Consent saved:', data)
-      setScreen('reminder')
+      setScreen('chat')
     } catch (error) {
       console.error('Consent save failed:', error)
       alert(error.message || 'Unable to save consent. Please try again.')
