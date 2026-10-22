@@ -1,6 +1,11 @@
-#red_flag detection
+#red flag detection
 
-# rule-based approach
+from  openai import OpenAI
+from typing import Optional
+
+from app.config import settings
+
+# rule-based approach/ binary
 CRISIS_DICT = [
 
     # direct suicide references
@@ -33,4 +38,43 @@ def contains_crisis(text: str) -> bool:
     return any(word in lowered_text for word in CRISIS_DICT)
 
 
-# ML based apprach goes here TBD
+# Moderation API OpenAI
+
+client = OpenAI(api_key=settings.OPEN_API_KEY)
+
+def usr_message_check(message: str) -> Optional[str]:
+    result = client.moderations.create(
+        model = "omni-moderation-latest",
+        input = message,
+    )
+
+    moderation = result.results[0]
+    categories = moderation.categories
+    red_flag = None
+
+    if (
+        categories.self_harm
+        or categories.self_harm_intent
+        or categories.self_harm_instructions
+    ):
+        red_flag = "high"
+    elif categories.violence or categories.illicit_violent or categories.harassment:
+        red_flag = "medium"
+
+    return red_flag
+
+
+#___Hardcoded test cases___
+'''
+message = "I want to kill myself"
+red_flag = usr_message_check(message)
+print(f"Message 1: {message}\nRed Flag Level: {red_flag}")
+
+message1 = "I want to shoot this person"
+red_flag1 = usr_message_check(message1)
+print(f"Message 2: {message1}\nRed Flag Level: {red_flag1}")
+
+message2 = "I have been so depresed lately"
+red_flag2 = usr_message_check(message2)
+print(f"Message 3: {message2}\nRed Flag Level: {red_flag2}")
+'''
