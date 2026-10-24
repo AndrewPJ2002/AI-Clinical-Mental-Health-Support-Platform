@@ -1,50 +1,120 @@
+
 import { useState } from 'react'
 import './ChatScreen.css'
 import './HistoryPanel.css'
 import HistoryPanel from './HistoryPanel'
 
+const API_URL = 'http://127.0.0.1:8000'
+
 function ChatScreen() {
   const [message, setMessage] = useState('')
   const [showHistory, setShowHistory] = useState(false)
   const [messages, setMessages] = useState([])
+  const [chatId, setChatId] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  function handleSend(event) {
+  async function handleSend(event) {
     event.preventDefault()
 
     const trimmedMessage = message.trim()
+    if (!trimmedMessage || loading) return
 
-    if (!trimmedMessage) return
+    const token = sessionStorage.getItem('access_token')
+
+    if (!token) {
+      setError('Your session has expired. Please log in again.')
+      return
+    }
+
+    setError('')
+    setLoading(true)
 
     const userMessage = {
-      id: Date.now(),
+      id: `user-${Date.now()}`,
       sender: 'user',
       text: trimmedMessage,
     }
 
-    setMessages((currentMessages) => [
-      ...currentMessages,
-      userMessage,
-    ])
-
+    // Show the patient's message immediately.
+    setMessages((current) => [...current, userMessage])
     setMessage('')
 
-    setTimeout(() => {
-      const temporaryAIResponse = {
-        id: Date.now() + 1,
-        sender: 'ai',
-        text: 'Thanks for sharing that. The live AI response will appear here once the backend connection is added.',
+    try {
+      let activeChatId = chatId
+
+      // Create a conversation the first time the patient sends a message.
+      if (activeChatId === null) {
+        const createResponse = await fetch(`${API_URL}/chat`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        const createData = await createResponse.json()
+
+        if (!createResponse.ok) {
+          throw new Error(
+            typeof createData.detail === 'string'
+              ? createData.detail
+              : 'Unable to start a conversation.',
+          )
+        }
+
+        activeChatId = createData.id
+        setChatId(activeChatId)
       }
 
-      setMessages((currentMessages) => [
-        ...currentMessages,
-        temporaryAIResponse,
+      // Send the message to the authenticated backend.
+      const response = await fetch(
+        `${API_URL}/chat/${activeChatId}/messages`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ content: trimmedMessage }),
+        },
+      )
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(
+          typeof data.detail === 'string'
+            ? data.detail
+            : 'Unable to send your message. Please try again.',
+        )
+      }
+
+      setMessages((current) => [
+        ...current,
+        {
+          id: `assistant-${Date.now()}`,
+          sender: 'ai',
+          text: data.assistant_message,
+        },
       ])
-    }, 500)
+    } catch (err) {
+      setError(
+        err instanceof TypeError
+          ? 'Could not connect to the backend. Check that FastAPI is running on port 8000.'
+          : err.message || 'Something went wrong. Please try again.',
+      )
+
+      // Keep the patient's message visible so it isn't lost.
+    } finally {
+      setLoading(false)
+    }
   }
 
   function handleNewConversation() {
     setMessages([])
     setMessage('')
+    setChatId(null)
+    setError('')
     setShowHistory(false)
   }
 
@@ -62,7 +132,6 @@ function ChatScreen() {
             <p className="chat-brand-name">
               Anchored Support Services
             </p>
-
             <p className="chat-brand-subtitle">
               Clinician-Connected AI Support
             </p>
@@ -75,6 +144,7 @@ function ChatScreen() {
               type="button"
               className="chat-secondary-button"
               onClick={handleNewConversation}
+              disabled={loading}
             >
               New Conversation
             </button>
@@ -93,12 +163,8 @@ function ChatScreen() {
       <div className="chat-layout">
         <section className="chat-workspace">
           <div className="chat-intro">
-            <p className="chat-eyebrow">
-              YOUR SUPPORT SPACE
-            </p>
-
+            <p className="chat-eyebrow">YOUR SUPPORT SPACE</p>
             <h1>How are you feeling today?</h1>
-
             <p>
               Welcome back. Start a new conversation or continue
               one from your history.
@@ -135,40 +201,46 @@ function ChatScreen() {
                           ? 'You'
                           : 'AI Support'}
                       </span>
-
                       <p>{chatMessage.text}</p>
                     </div>
                   </div>
                 ))}
+
+                {loading && (
+                  <p role="status" aria-live="polite">
+                    AI Support is preparing a response...
+                  </p>
+                )}
               </div>
             )}
 
-            <form
-              className="chat-input-area"
-              onSubmit={handleSend}
-            >
+            {error && (
+              <p className="chat-error" role="alert">
+                {error}
+              </p>
+            )}
+
+            <form className="chat-input-area" onSubmit={handleSend}>
               <textarea
                 value={message}
-                onChange={(event) =>
-                  setMessage(event.target.value)
-                }
+                onChange={(event) => setMessage(event.target.value)}
                 placeholder="Share what’s on your mind..."
                 rows="3"
+                disabled={loading}
               />
 
               <button
                 type="submit"
                 className="chat-send-button"
-                disabled={!message.trim()}
+                disabled={!message.trim() || loading}
               >
-                Send
+                {loading ? 'Sending...' : 'Send'}
               </button>
             </form>
           </div>
 
           <div className="chat-safety-note">
             <strong>Need immediate help?</strong>
-
             <span>
               {' '}
               This AI support tool is not an emergency service.
@@ -179,9 +251,7 @@ function ChatScreen() {
         </section>
 
         {showHistory && (
-          <HistoryPanel
-            onClose={() => setShowHistory(false)}
-          />
+          <HistoryPanel onClose={() => setShowHistory(false)} />
         )}
       </div>
     </main>
