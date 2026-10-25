@@ -5,3 +5,10 @@ Chat Response Generation, Backend and frontend running, "Open the chat interface
     System displays a placeholder message indicating responses will be generated once backend integration is completed., FAIL
 Conversation History, User logged in and able to create a conversation, "Create a new conversation and check the chat history panel.", New conversation should appear in the conversation history list.,
     Newly created conversation does not appear in the chat history section., FAIL
+
+Chat Response Generation Update - 10/25/2026
+    - Placeholder no longer shows up, but got a message saying that the AI service is unavailable (3:11 PM).
+
+Existing User Login - 10/25-2026
+    - Successful login for returning user using created credentials; consent, disclosure, and disclaimer pages do not show up,
+    but the application goes straight to the chat window.
