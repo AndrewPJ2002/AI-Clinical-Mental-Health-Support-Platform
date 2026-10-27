@@ -15,6 +15,7 @@ from app.chat.service import (
 )
 from app.database import get_db
 from app.db_tables import User
+from app.knowledge_base import get_relevant_knowledge
 from app.safety.action import risk_response
 
 router = APIRouter(prefix="/chat", tags=["Chat"])
@@ -61,7 +62,16 @@ def send_message(
             assistant_reply = safety_result["response"]
         else:
             history = get_conversation_history(db, chat_id)
-            assistant_reply = generate_reply(history, content)
+            knowledge_context = get_relevant_knowledge(content)
+            assistant_reply = generate_reply(
+                history,
+                content,
+                knowledge_context,
+            )
+            if knowledge_context:
+                print("USING KNOWLEDGE BASE")
+            else:
+                print("NO KNOWLEDGE BASE USED")
 
         save_chat_turn(db, chat_id, content, assistant_reply)
 

@@ -12,3 +12,10 @@ Chat Response Generation Update - 10/25/2026
 Existing User Login - 10/25-2026
     - Successful login for returning user using created credentials; consent, disclosure, and disclaimer pages do not show up,
     but the application goes straight to the chat window.
+
+Response to Prompts - 10/26/2026
+    - Getting a proper response instead of a placeholder message. 
+    - Refining the backend to make the response come from the existing knowledge bases instead of the AI.
+    - Able to get a response for the prompt from the knowledge base, but as LLMs tend to do, the content from 
+    the knowledge base is somewhat paraphrased.
+    - Further refining needed to downsize the list of potential keywords in prompt to make more RAG type.

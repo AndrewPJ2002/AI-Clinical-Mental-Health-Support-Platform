@@ -18,9 +18,25 @@ contact local emergency services or a trusted person who can help right away."""
 def build_prompt(
     conversation_history: Sequence[Mapping[str, str]],
     user_message: str,
+    knowledge_context: str = "",
 ) -> list[dict[str, str]]:
     """Build the OpenAI chat messages from prior turns and the current message."""
-    messages = [{"role": "system", "content": SYSTEM_PROMPT}]
+    system_content = SYSTEM_PROMPT
+    if knowledge_context:
+        system_content += (
+        "\n\nKNOWLEDGE BASE CONTENT\n"
+        "----------------------\n"
+        f"{knowledge_context}"
+        "\n\nIMPORTANT:\n"
+        "Answer ONLY from the knowledge-base content above. "
+        "If the answer is not found in the knowledge base, respond exactly with: "
+        "'I do not see that information in the knowledge base.' "
+        "Do not add facts, resources, worksheets, recommendations, or advice from your own knowledge. "
+        "Do not invent information. "
+        "Do not present information as a diagnosis.\n\n"
+        )
+
+    messages = [{"role": "system", "content": system_content}]
 
     for turn in conversation_history:
         role = turn.get("role")
@@ -39,12 +55,17 @@ def build_prompt(
 def generate_reply(
     conversation_history: Sequence[Mapping[str, str]],
     user_message: str,
+    knowledge_context: str = "",
 ) -> str:
     """Generate an assistant reply using prior conversation turns."""
-    client = OpenAI(api_key=settings.open_api_key)
+    client = OpenAI(api_key="")
     response = client.chat.completions.create(
-        model=settings.openapi_model,
-        messages=build_prompt(conversation_history, user_message),
+        model="",
+        messages=build_prompt(
+            conversation_history,
+            user_message,
+            knowledge_context,
+        ),
     )
 
     reply = response.choices[0].message.content
