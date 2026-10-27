@@ -52,7 +52,7 @@ def answer_question(
     )
 
     response = client.chat.completions.create(
-        model="gpt-6-luna",
+        model="",
         messages=[
             {
                 "role": "system",
