@@ -1,8 +1,45 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+import './components/ChatScreen.css'
 import ChatScreen from './components/ChatScreen'
 
 const API_URL = 'http://127.0.0.1:8000'
+
+function AuthenticatedHeader({ onLogout }) {
+  return (
+    <header className="chat-header">
+      <div className="chat-brand">
+        <div className="chat-logo-frame">
+          <img
+            src="/anchored-support-services-logo.png"
+            alt="Anchored Support Services"
+            className="chat-logo"
+          />
+        </div>
+
+        <div>
+          <p className="chat-brand-name">
+            Anchored Support Services
+          </p>
+
+          <p className="chat-brand-subtitle">
+            Clinician-Connected AI Support
+          </p>
+        </div>
+      </div>
+
+      <div className="chat-header-actions">
+        <button
+          type="button"
+          className="chat-secondary-button"
+          onClick={onLogout}
+        >
+          Sign Out
+        </button>
+      </div>
+    </header>
+  )
+}
 
 function App() {
   const [screen, setScreen] = useState('login')
@@ -15,6 +52,67 @@ function App() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showConsentScrollCue, setShowConsentScrollCue] = useState(false)
+
+    useEffect(() => {
+    if (screen !== 'consent') {
+      return undefined
+    }
+
+    function updateConsentScrollCue() {
+      const consentArea = document.querySelector('.consent-action-area')
+
+      if (!consentArea) {
+        setShowConsentScrollCue(false)
+        return
+      }
+
+      const consentAreaPosition = consentArea.getBoundingClientRect()
+
+      setShowConsentScrollCue(
+        consentAreaPosition.top > window.innerHeight - 90,
+      )
+    }
+
+    const initialCheck = window.setTimeout(
+      updateConsentScrollCue,
+      50,
+    )
+
+    window.addEventListener(
+      'scroll',
+      updateConsentScrollCue,
+      { passive: true },
+    )
+
+    window.addEventListener(
+      'resize',
+      updateConsentScrollCue,
+    )
+
+    return () => {
+      window.clearTimeout(initialCheck)
+
+      window.removeEventListener(
+        'scroll',
+        updateConsentScrollCue,
+      )
+
+      window.removeEventListener(
+        'resize',
+        updateConsentScrollCue,
+      )
+    }
+  }, [screen])
+
+  function scrollToConsentArea() {
+    const consentArea = document.querySelector('.consent-action-area')
+
+    consentArea?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    })
+  }
 
   async function handleConsentContinue() {
     const token = sessionStorage.getItem('access_token')
@@ -159,74 +257,53 @@ function App() {
   }
 
   if (screen === 'chat') {
-    return <ChatScreen />
+    return <ChatScreen onLogout={logout} />
   }
 
   if (screen === 'reminder') {
     return (
       <main className="app-page">
-        <header className="brand-header">
-          <h2 className="brand-name">
-            Anchored Support Services
-          </h2>
-
-          <img
-            src="/anchored-support-services-banner.png"
-            alt="Anchored Support Services"
-            className="brand-banner"
-          />
-
-          <p className="brand-tagline">
-            Anchor Yourself in Healing and Community.
-          </p>
-        </header>
+        <AuthenticatedHeader onLogout={logout} />
 
         <section className="login-section">
           <div className="login-card consent-card">
             <p className="eyebrow">
-              BEFORE YOU START CHATTING
+              BEFORE YOUR FIRST CHAT
             </p>
 
-            <h1>A Quick Reminder</h1>
+            <h1>A Few Things to Keep in Mind</h1>
 
             <p className="login-subtitle">
-              This space is here to support you between therapy sessions.
+              Your support space is ready. Here are three quick reminders
+              before you begin.
             </p>
 
-            <div className="consent-content">
-              <div className="consent-item">
-                <h3>Share only what feels comfortable</h3>
+            <div className="quick-reminder-list">
+              <div className="quick-reminder-item">
+                <h3>Share what feels comfortable</h3>
 
                 <p>
-                  You choose what you want to discuss. You do not have to
-                  share anything you are not comfortable sharing.
+                  You choose what you want to talk about and how much
+                  you want to share.
                 </p>
               </div>
 
-              <div className="consent-item">
-                <h3>Use this space for non-emergency support</h3>
+              <div className="quick-reminder-item">
+                <h3>AI support, not therapy</h3>
 
                 <p>
-                  The AI can help with general reflection and coping
-                  strategies, but it is not a replacement for your therapist.
+                  This space can support reflection and coping between
+                  sessions, but it does not replace your therapist.
                 </p>
               </div>
 
-              <div className="consent-item">
-                <h3>Your therapist remains part of your care</h3>
+              <div className="quick-reminder-item">
+                <h3>Need urgent help?</h3>
 
                 <p>
-                  Your assigned therapist may review conversations when
-                  appropriate and remains responsible for clinical decisions.
-                </p>
-              </div>
-
-              <div className="consent-item">
-                <h3>Get immediate help during a crisis</h3>
-
-                <p>
-                  If you are in immediate danger, call 911. In the US, call
-                  or text 988 for crisis support.
+                  This is not an emergency service. If you are in immediate
+                  danger, call 911. In the US, call or text 988 for crisis
+                  support.
                 </p>
               </div>
             </div>
@@ -238,14 +315,6 @@ function App() {
             >
               Start Chat
             </button>
-
-            <button
-              type="button"
-              className="forgot-password"
-              onClick={() => setScreen('consent')}
-            >
-              Back to Consent
-            </button>
           </div>
         </section>
       </main>
@@ -255,21 +324,7 @@ function App() {
   if (screen === 'consent') {
     return (
       <main className="app-page">
-        <header className="brand-header">
-          <h2 className="brand-name">
-            Anchored Support Services
-          </h2>
-
-          <img
-            src="/anchored-support-services-banner.png"
-            alt="Anchored Support Services"
-            className="brand-banner"
-          />
-
-          <p className="brand-tagline">
-            Anchor Yourself in Healing and Community.
-          </p>
-        </header>
+        <AuthenticatedHeader onLogout={logout} />
 
         <section className="login-section">
           <div className="login-card consent-card">
@@ -332,39 +387,53 @@ function App() {
               </div>
             </div>
 
-            <label className="consent-checkbox">
-              <input
-                type="checkbox"
-                checked={consentAccepted}
-                onChange={(event) =>
-                  setConsentAccepted(event.target.checked)
-                }
-              />
+            <div className="consent-action-area">
+              <label className="consent-checkbox">
+                <input
+                  type="checkbox"
+                  checked={consentAccepted}
+                  onChange={(event) =>
+                    setConsentAccepted(event.target.checked)
+                  }
+                />
 
-              <span>
-                I have read and understand the information above, and I
-                agree to use the clinician-connected AI support chat.
-              </span>
-            </label>
+                <span>
+                  I have read and understand the information above, and I
+                  agree to use the clinician-connected AI support chat.
+                </span>
+              </label>
 
-            <button
-              type="button"
-              className="sign-in-button"
-              disabled={!consentAccepted}
-              onClick={handleConsentContinue}
-            >
-              Continue
-            </button>
-
-            <button
-              type="button"
-              className="forgot-password"
-              onClick={logout}
-            >
-              Sign Out
-            </button>
+              <button
+                type="button"
+                className="sign-in-button"
+                disabled={!consentAccepted}
+                onClick={handleConsentContinue}
+              >
+                Continue
+              </button>
+            </div>
           </div>
         </section>
+
+        <button
+          type="button"
+          className={
+            screen === 'consent' && showConsentScrollCue
+              ? 'consent-scroll-cue is-visible'
+              : 'consent-scroll-cue'
+          }
+          onClick={scrollToConsentArea}
+          aria-label="Continue reviewing the consent information"
+        >
+          <span>More to review below</span>
+
+          <span
+            className="consent-scroll-arrow"
+            aria-hidden="true"
+          >
+            ↓
+          </span>
+        </button>
       </main>
     )
   }
@@ -396,13 +465,13 @@ function App() {
           <h1>
             {isRegistering
               ? 'Create Your Account'
-              : 'Welcome Back'}
+              : 'Welcome to Your Support Space'}
           </h1>
 
           <p className="login-subtitle">
             {isRegistering
-              ? 'Create an account to access your support space.'
-              : 'Sign in to continue to your support space.'}
+              ? 'Create your account to continue.'
+              : 'Sign in or create an account to continue.'}
           </p>
 
           <form
@@ -507,18 +576,18 @@ function App() {
                     viewBox="0 0 24 24"
                     aria-hidden="true"
                   >
-                    <path d="M3 3l18 18" />
-                    <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
-                    <path d="M9.9 4.2A10.8 10.8 0 0 1 12 4c5.5 0 9 5 9 8a9.8 9.8 0 0 1-2.1 3.8" />
-                    <path d="M6.6 6.6C4.4 8 3 10.2 3 12c0 3 3.5 8 9 8 1.6 0 3-.4 4.2-1" />
+                    <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z" />
+                    <circle cx="12" cy="12" r="2.5" />
                   </svg>
                 ) : (
                   <svg
                     viewBox="0 0 24 24"
                     aria-hidden="true"
                   >
-                    <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z" />
-                    <circle cx="12" cy="12" r="2.5" />
+                    <path d="M3 3l18 18" />
+                    <path d="M10.6 10.6a2 2 0 0 0 2.8 2.8" />
+                    <path d="M9.9 4.2A10.8 10.8 0 0 1 12 4c5.5 0 9 5 9 8a9.8 9.8 0 0 1-2.1 3.8" />
+                    <path d="M6.6 6.6C4.4 8 3 10.2 3 12c0 3 3.5 8 9 8 1.6 0 3-.4 4.2-1" />
                   </svg>
                 )}
               </button>
