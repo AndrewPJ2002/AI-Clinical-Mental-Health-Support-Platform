@@ -5,7 +5,7 @@ import re
 REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
 _KNOWLEDGE_BASE_CANDIDATES = (
     REPOSITORY_ROOT / "knowledge-base",
-    REPOSITORY_ROOT / "knowlegde-base",
+    REPOSITORY_ROOT / "knowledge-base",
 )
 KNOWLEDGE_BASE_DIR = next(
     (path for path in _KNOWLEDGE_BASE_CANDIDATES if path.is_dir()),

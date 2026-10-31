@@ -12,7 +12,8 @@ from sqlalchemy import (
     func,
 )
 from sqlalchemy.dialects.postgresql import ENUM as PGEnum
-
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import Column, Integer, String, Text
 from app.database import Base
 
 
@@ -135,3 +136,14 @@ class ConsentAcknowledgement(Base):
         nullable=False,
         server_default=func.now(),
     )
+
+class KnowledgeChunk(Base):
+    __tablename__ = "knowledge_chunks"
+
+    id = Column(Integer, primary_key=True)
+
+    source_document = Column(String)
+
+    content = Column(Text)
+
+    embedding = Column(Vector(384))

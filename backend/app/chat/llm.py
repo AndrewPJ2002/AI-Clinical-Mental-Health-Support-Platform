@@ -58,9 +58,9 @@ def generate_reply(
     knowledge_context: str = "",
 ) -> str:
     """Generate an assistant reply using prior conversation turns."""
-    client = OpenAI(api_key="")
+    client = OpenAI(api_key=settings.open_api_key)
     response = client.chat.completions.create(
-        model="",
+        model=settings.openapi_model,
         messages=build_prompt(
             conversation_history,
             user_message,
@@ -71,4 +71,6 @@ def generate_reply(
     reply = response.choices[0].message.content
     if reply is None:
         raise RuntimeError("OpenAI returned an empty assistant reply.")
+    print("KNOWLEDGE CONTEXT:")
+    print(knowledge_context)
     return reply

@@ -18,7 +18,7 @@ from app.db_tables import User
 from app.knowledge_base import get_relevant_knowledge
 from app.safety.action import risk_response
 from app.schemas import MessageCreate
-
+from app.retr_aug_gen import retrieve_context
 
 router = APIRouter(
     prefix="/chat",
@@ -140,7 +140,7 @@ def send_message(
                 db,
                 chat_id,
             )
-            knowledge_context = get_relevant_knowledge(content)
+            knowledge_context = retrieve_context(db, content)
 
             assistant_reply = generate_reply(
                 history,

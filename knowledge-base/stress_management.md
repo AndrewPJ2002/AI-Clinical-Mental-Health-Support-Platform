@@ -9,6 +9,7 @@ Stress occurs when demands exceed available resources. Long-term stress can affe
 - **Journaling:** Writing thoughts down helps organize emotions and identify patterns.
 - **Relaxation routines:** Stretching, meditation, or quiet time can reset the body.
 - **Healthy habits:** Hydration, balanced meals, and regular movement support stress recovery.
+- The Daily Compass Reflection Exercise helps organize overwhelming responsibilities.
 
 ## Signs Stress Is Becoming Unmanageable
 - Feeling constantly overwhelmed  
