@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import './components/ChatScreen.css'
 import ChatScreen from './components/ChatScreen'
+import TherapistDashboard from './components/TherapistDashboard'
+
 
 const API_URL = 'http://127.0.0.1:8000'
+
 
 function AuthenticatedHeader({ onLogout }) {
   return (
@@ -41,6 +44,7 @@ function AuthenticatedHeader({ onLogout }) {
   )
 }
 
+
 function App() {
   const [screen, setScreen] = useState('login')
   const [showPassword, setShowPassword] = useState(false)
@@ -61,14 +65,17 @@ function App() {
     }
 
     function updateConsentScrollCue() {
-      const consentArea = document.querySelector('.consent-action-area')
+      const consentArea = document.querySelector(
+        '.consent-action-area',
+      )
 
       if (!consentArea) {
         setShowConsentScrollCue(false)
         return
       }
 
-      const consentAreaPosition = consentArea.getBoundingClientRect()
+      const consentAreaPosition =
+        consentArea.getBoundingClientRect()
 
       setShowConsentScrollCue(
         consentAreaPosition.top > window.innerHeight - 90,
@@ -107,7 +114,9 @@ function App() {
   }, [screen])
 
   function scrollToConsentArea() {
-    const consentArea = document.querySelector('.consent-action-area')
+    const consentArea = document.querySelector(
+      '.consent-action-area',
+    )
 
     consentArea?.scrollIntoView({
       behavior: 'smooth',
@@ -125,28 +134,37 @@ function App() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/consent/acknowledge`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
+      const response = await fetch(
+        `${API_URL}/consent/acknowledge`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            disclosure_version: 'v1',
+          }),
         },
-        body: JSON.stringify({
-          disclosure_version: 'v1',
-        }),
-      })
+      )
 
       const data = await response.json()
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Unable to save consent.')
+        throw new Error(
+          data.detail || 'Unable to save consent.',
+        )
       }
 
       console.log('Consent saved:', data)
       setScreen('reminder')
     } catch (error) {
       console.error('Consent save failed:', error)
-      alert(error.message || 'Unable to save consent. Please try again.')
+
+      alert(
+        error.message ||
+          'Unable to save consent. Please try again.',
+      )
     }
   }
 
@@ -160,14 +178,18 @@ function App() {
     setError('')
 
     if (isRegistering && password.length < 12) {
-      setError('Your password must contain at least 12 characters.')
+      setError(
+        'Your password must contain at least 12 characters.',
+      )
       return
     }
 
     setLoading(true)
 
     try {
-      const endpoint = isRegistering ? '/auth/register' : '/auth/login'
+      const endpoint = isRegistering
+        ? '/auth/register'
+        : '/auth/login'
 
       const payload = isRegistering
         ? {
@@ -181,13 +203,16 @@ function App() {
             password,
           }
 
-      const response = await fetch(`${API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      const response = await fetch(
+        `${API_URL}${endpoint}`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
         },
-        body: JSON.stringify(payload),
-      })
+      )
 
       const data = await response.json()
 
@@ -207,23 +232,76 @@ function App() {
         setError('')
         setScreen('login')
 
-        alert('Account created! Please sign in with your new credentials.')
+        alert(
+          'Account created! Please sign in with your new credentials.',
+        )
       } else {
-        sessionStorage.setItem('access_token', data.access_token)
+        sessionStorage.setItem(
+          'access_token',
+          data.access_token,
+        )
 
-        try {
-          const consentResponse = await fetch(`${API_URL}/consent/status`, {
+        const profileResponse = await fetch(
+          `${API_URL}/auth/me`,
+          {
             method: 'GET',
             headers: {
               Authorization: `Bearer ${data.access_token}`,
             },
-          })
+          },
+        )
+
+        const profileData =
+          await profileResponse.json()
+
+        if (!profileResponse.ok) {
+          throw new Error(
+            profileData.detail ||
+              'Could not determine your account role.',
+          )
+        }
+
+        if (profileData.role === 'therapist') {
+          setPassword('')
+          setScreen('therapist')
+          return
+        }
+
+        if (profileData.role === 'admin') {
+          sessionStorage.removeItem('access_token')
+
+          throw new Error(
+            'Administrator access is not available yet.',
+          )
+        }
+
+        if (profileData.role !== 'patient') {
+          sessionStorage.removeItem('access_token')
+
+          throw new Error(
+            'This account does not have a supported role.',
+          )
+        }
+
+        try {
+          const consentResponse = await fetch(
+            `${API_URL}/consent/status`,
+            {
+              method: 'GET',
+              headers: {
+                Authorization: `Bearer ${data.access_token}`,
+              },
+            },
+          )
 
           if (!consentResponse.ok) {
-            throw new Error('Could not check your consent status.')
+            throw new Error(
+              'Could not check your consent status.',
+            )
           }
 
-          const consentData = await consentResponse.json()
+          const consentData =
+            await consentResponse.json()
 
           if (consentData.required) {
             setConsentAccepted(false)
@@ -233,8 +311,14 @@ function App() {
             setScreen('chat')
           }
         } catch (error) {
-          console.error('Consent status check failed:', error)
-          alert('We could not verify your consent. Please try again.')
+          console.error(
+            'Consent status check failed:',
+            error,
+          )
+
+          alert(
+            'We could not verify your consent. Please try again.',
+          )
         }
       }
     } catch (err) {
@@ -257,8 +341,20 @@ function App() {
     setScreen('login')
   }
 
+  if (screen === 'therapist') {
+    return (
+      <TherapistDashboard
+        onLogout={logout}
+      />
+    )
+  }
+
   if (screen === 'chat') {
-    return <ChatScreen onLogout={logout} />
+    return (
+      <ChatScreen
+        onLogout={logout}
+      />
+    )
   }
 
   if (screen === 'reminder') {
@@ -272,38 +368,48 @@ function App() {
               BEFORE YOUR FIRST CHAT
             </p>
 
-            <h1>A Few Things to Keep in Mind</h1>
+            <h1>
+              A Few Things to Keep in Mind
+            </h1>
 
             <p className="login-subtitle">
-              Your support space is ready. Here are three quick reminders
-              before you begin.
+              Your support space is ready. Here are three
+              quick reminders before you begin.
             </p>
 
             <div className="quick-reminder-list">
               <div className="quick-reminder-item">
-                <h3>Share what feels comfortable</h3>
+                <h3>
+                  Share what feels comfortable
+                </h3>
 
                 <p>
-                  You choose what you want to talk about and how much
-                  you want to share.
+                  You choose what you want to talk about
+                  and how much you want to share.
                 </p>
               </div>
 
               <div className="quick-reminder-item">
-                <h3>AI support, not therapy</h3>
+                <h3>
+                  AI support, not therapy
+                </h3>
 
                 <p>
-                  This space can support reflection and coping between
-                  sessions, but it does not replace your therapist.
+                  This space can support reflection and
+                  coping between sessions, but it does
+                  not replace your therapist.
                 </p>
               </div>
 
               <div className="quick-reminder-item">
-                <h3>Need urgent help?</h3>
+                <h3>
+                  Need urgent help?
+                </h3>
 
                 <p>
-                  This is not an emergency service. If you are in immediate
-                  danger, call 911. In the US, call or text 988 for crisis
+                  This is not an emergency service. If
+                  you are in immediate danger, call 911.
+                  In the US, call or text 988 for crisis
                   support.
                 </p>
               </div>
@@ -333,57 +439,75 @@ function App() {
               BEFORE YOU BEGIN
             </p>
 
-            <h1>AI Disclosure and Consent</h1>
+            <h1>
+              AI Disclosure and Consent
+            </h1>
 
             <p className="login-subtitle">
-              Please review this information before using the AI support chat.
+              Please review this information before using
+              the AI support chat.
             </p>
 
             <div className="consent-content">
               <div className="consent-item">
-                <h3>This is an AI support tool</h3>
+                <h3>
+                  This is an AI support tool
+                </h3>
 
                 <p>
-                  The AI is not a therapist and does not replace care from
-                  your licensed mental health professional.
+                  The AI is not a therapist and does not
+                  replace care from your licensed mental
+                  health professional.
                 </p>
               </div>
 
               <div className="consent-item">
-                <h3>It does not provide diagnosis or treatment</h3>
+                <h3>
+                  It does not provide diagnosis or treatment
+                </h3>
 
                 <p>
-                  The AI provides supportive conversation and general
-                  wellness guidance, not diagnosis, treatment, or clinical
+                  The AI provides supportive conversation
+                  and general wellness guidance, not
+                  diagnosis, treatment, or clinical
                   decisions.
                 </p>
               </div>
 
               <div className="consent-item">
-                <h3>Your therapist may review your conversations</h3>
+                <h3>
+                  Your therapist may review your conversations
+                </h3>
 
                 <p>
-                  Conversations may be stored as part of this
-                  clinician-connected experience and reviewed by your
-                  assigned therapist when appropriate.
+                  Conversations may be stored as part of
+                  this clinician-connected experience and
+                  reviewed by your assigned therapist when
+                  appropriate.
                 </p>
               </div>
 
               <div className="consent-item">
-                <h3>Safety concerns may be flagged</h3>
+                <h3>
+                  Safety concerns may be flagged
+                </h3>
 
                 <p>
-                  Messages indicating possible safety concerns may be
-                  flagged for therapist review.
+                  Messages indicating possible safety
+                  concerns may be flagged for therapist
+                  review.
                 </p>
               </div>
 
               <div className="consent-item">
-                <h3>This is not an emergency service</h3>
+                <h3>
+                  This is not an emergency service
+                </h3>
 
                 <p>
-                  If you are in immediate danger, call 911. In the US,
-                  call or text 988 for crisis support.
+                  If you are in immediate danger, call 911.
+                  In the US, call or text 988 for crisis
+                  support.
                 </p>
               </div>
             </div>
@@ -394,13 +518,16 @@ function App() {
                   type="checkbox"
                   checked={consentAccepted}
                   onChange={(event) =>
-                    setConsentAccepted(event.target.checked)
+                    setConsentAccepted(
+                      event.target.checked,
+                    )
                   }
                 />
 
                 <span>
-                  I have read and understand the information above, and I
-                  agree to use the clinician-connected AI support chat.
+                  I have read and understand the
+                  information above, and I agree to use
+                  the clinician-connected AI support chat.
                 </span>
               </label>
 
@@ -426,7 +553,9 @@ function App() {
           onClick={scrollToConsentArea}
           aria-label="Continue reviewing the consent information"
         >
-          <span>More to review below</span>
+          <span>
+            More to review below
+          </span>
 
           <span
             className="consent-scroll-arrow"
@@ -491,7 +620,9 @@ function App() {
                   autoComplete="given-name"
                   value={firstName}
                   onChange={(event) =>
-                    setFirstName(event.target.value)
+                    setFirstName(
+                      event.target.value,
+                    )
                   }
                   required
                 />
@@ -506,7 +637,9 @@ function App() {
                   autoComplete="family-name"
                   value={lastName}
                   onChange={(event) =>
-                    setLastName(event.target.value)
+                    setLastName(
+                      event.target.value,
+                    )
                   }
                   required
                 />
@@ -524,7 +657,9 @@ function App() {
               placeholder="you@example.com"
               value={email}
               onChange={(event) =>
-                setEmail(event.target.value)
+                setEmail(
+                  event.target.value,
+                )
               }
               required
             />
@@ -536,7 +671,11 @@ function App() {
             <div className="password-field">
               <input
                 id="password"
-                type={showPassword ? 'text' : 'password'}
+                type={
+                  showPassword
+                    ? 'text'
+                    : 'password'
+                }
                 autoComplete={
                   isRegistering
                     ? 'new-password'
@@ -549,17 +688,25 @@ function App() {
                 }
                 value={password}
                 onChange={(event) =>
-                  setPassword(event.target.value)
+                  setPassword(
+                    event.target.value,
+                  )
                 }
                 required
-                minLength={isRegistering ? 12 : 1}
+                minLength={
+                  isRegistering
+                    ? 12
+                    : 1
+                }
               />
 
               <button
                 type="button"
                 className="password-toggle"
                 onClick={() =>
-                  setShowPassword(!showPassword)
+                  setShowPassword(
+                    !showPassword,
+                  )
                 }
                 aria-label={
                   showPassword
@@ -578,7 +725,11 @@ function App() {
                     aria-hidden="true"
                   >
                     <path d="M2.5 12s3.5-7 9.5-7 9.5 7 9.5 7-3.5 7-9.5 7-9.5-7-9.5-7z" />
-                    <circle cx="12" cy="12" r="2.5" />
+                    <circle
+                      cx="12"
+                      cy="12"
+                      r="2.5"
+                    />
                   </svg>
                 ) : (
                   <svg
@@ -640,7 +791,9 @@ function App() {
             type="button"
             className="create-account"
             onClick={() => {
-              setIsRegistering(!isRegistering)
+              setIsRegistering(
+                !isRegistering,
+              )
               resetMessages()
               setPassword('')
             }}
@@ -654,5 +807,6 @@ function App() {
     </main>
   )
 }
+
 
 export default App

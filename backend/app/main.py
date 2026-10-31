@@ -6,6 +6,7 @@ from app.database import Base, engine
 from app.auth.router import router as auth_router
 from app.chat.router import router as chat_router
 from app.consent.router import router as consent_router
+from app.therapist.router import router as therapist_router
 
 
 app = FastAPI(title="Mental Health App API")
@@ -13,9 +14,9 @@ app = FastAPI(title="Mental Health App API")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-    "http://localhost:3000",
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -25,6 +26,7 @@ app.add_middleware(
 app.include_router(auth_router)
 app.include_router(chat_router)
 app.include_router(consent_router)
+app.include_router(therapist_router)
 
 
 @app.get("/health")

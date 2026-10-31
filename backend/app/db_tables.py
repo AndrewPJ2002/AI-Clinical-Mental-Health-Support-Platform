@@ -135,3 +135,111 @@ class ConsentAcknowledgement(Base):
         nullable=False,
         server_default=func.now(),
     )
+
+
+class RedFlagDefinition(Base):
+    __tablename__ = "red_flag_definitions"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    detection_pattern = Column(Text, nullable=False)
+    severity = Column(String(50), nullable=False)
+    is_active = Column(
+        Boolean,
+        nullable=False,
+        server_default="true",
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class RedFlagEvent(Base):
+    __tablename__ = "red_flag_events"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    message_id = Column(
+        BigInteger,
+        ForeignKey("messages.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
+    red_flag_definition_id = Column(
+        BigInteger,
+        ForeignKey(
+            "red_flag_definitions.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+    )
+
+    patient_id = Column(
+        BigInteger,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    conversation_id = Column(
+        BigInteger,
+        ForeignKey(
+            "conversations.id",
+            ondelete="CASCADE",
+        ),
+        nullable=False,
+    )
+
+    severity = Column(String(50), nullable=False)
+
+    detected_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+    status = Column(String(50), nullable=False)
+
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+
+    recipient_user_id = Column(
+        BigInteger,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    red_flag_event_id = Column(
+        BigInteger,
+        ForeignKey(
+            "red_flag_events.id",
+            ondelete="CASCADE",
+        ),
+        nullable=True,
+    )
+
+    type = Column(String(50), nullable=False)
+    message = Column(Text, nullable=False)
+
+    is_read = Column(
+        Boolean,
+        nullable=False,
+        server_default="false",
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )

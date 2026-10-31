@@ -1,0 +1,482 @@
+.therapist-page {
+  min-height: 100vh;
+  background: #fbf6f2;
+}
+
+.therapist-section {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 56px 40px 80px;
+}
+
+.therapist-dashboard-card {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding: 54px 68px 64px;
+  border: 1px solid #ddcfc9;
+  border-top: 7px solid #8a9560;
+  border-radius: 28px;
+  background: #fffaf7;
+  box-shadow: 0 18px 50px rgba(85, 50, 54, 0.08);
+}
+
+
+/* Dashboard */
+
+.therapist-dashboard-heading {
+  max-width: 760px;
+  margin: 0 auto 46px;
+  text-align: center;
+}
+
+.therapist-eyebrow {
+  margin: 0 0 14px;
+  color: #8a874c;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+}
+
+.therapist-dashboard-heading h1 {
+  margin: 0;
+  color: #733143;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(2.5rem, 3.6vw, 3.3rem);
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.therapist-subtitle {
+  margin: 18px auto 0;
+  color: #4c4040;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.therapist-section-title {
+  margin: 0 0 18px;
+  color: #733143;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.9rem;
+  font-weight: 600;
+}
+
+.therapist-patients-area {
+  margin-top: 8px;
+}
+
+.therapist-safety-area {
+  margin: 0 0 38px;
+  padding-bottom: 38px;
+  border-bottom: 1px solid #e4d8d3;
+}
+
+
+/* Cards */
+
+.therapist-list {
+  display: grid;
+  gap: 18px;
+  width: 100%;
+}
+
+.therapist-list-item {
+  position: relative;
+  display: grid;
+  gap: 8px;
+  width: 100%;
+  min-height: 138px;
+  box-sizing: border-box;
+  padding: 26px 92px 26px 30px;
+  border: 1px solid #d8cbc5;
+  border-left: 6px solid #9da66d;
+  border-radius: 20px;
+  background: #fffdfb;
+  color: #3f3434;
+  font-family: 'Montserrat', Arial, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 5px 18px rgba(85, 50, 54, 0.04);
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.therapist-list-item::after {
+  content: '›';
+  position: absolute;
+  top: 50%;
+  right: 32px;
+  transform: translateY(-50%);
+  color: #733143;
+  font-family: Georgia, serif;
+  font-size: 2.1rem;
+  font-weight: 600;
+  line-height: 1;
+  transition:
+    transform 160ms ease,
+    color 160ms ease;
+}
+
+.therapist-list-item:hover {
+  transform: translateY(-3px);
+  border-color: #9da66d;
+  border-left-color: #733143;
+  background: #ffffff;
+  box-shadow: 0 14px 32px rgba(85, 50, 54, 0.12);
+}
+
+.therapist-list-item:hover::after {
+  transform: translate(4px, -50%);
+  color: #5d2636;
+}
+
+.therapist-list-item:active {
+  transform: translateY(-1px);
+}
+
+.therapist-list-item:focus-visible {
+  outline: 3px solid rgba(115, 49, 67, 0.22);
+  outline-offset: 3px;
+}
+
+.therapist-list-item strong {
+  color: #733143;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.7rem;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.therapist-list-item span {
+  color: #7a706e;
+  font-size: 0.84rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+
+/* Safety card */
+
+.therapist-alert-item {
+  min-height: 132px;
+  border-color: #d7bcc2;
+  border-left-color: #733143;
+  background: #fff8f8;
+}
+
+.therapist-alert-item:hover {
+  border-color: #733143;
+  border-left-color: #733143;
+  background: #ffffff;
+}
+
+.therapist-alert-severity {
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f1dfe2;
+  color: #733143 !important;
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+}
+
+.therapist-alert-copy {
+  color: #655b59 !important;
+  font-size: 0.9rem !important;
+}
+
+
+/* Patient conversation pages */
+
+.therapist-page-heading {
+  max-width: 850px;
+  margin: 0 auto 44px;
+  text-align: center;
+}
+
+.therapist-page-heading h1 {
+  margin: 0;
+  color: #733143;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: clamp(2.7rem, 4vw, 3.8rem);
+  font-weight: 500;
+  line-height: 1.05;
+}
+
+.therapist-toolbar {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: 30px;
+}
+
+.therapist-back-button {
+  padding: 10px 18px;
+  border: 1px solid #cbbab4;
+  border-radius: 999px;
+  background: transparent;
+  color: #733143;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.therapist-back-button:hover {
+  transform: translateX(-2px);
+  border-color: #9da66d;
+  background: #f4eae6;
+}
+
+
+/* Conversation history */
+
+.conversation-card {
+  min-height: 160px;
+}
+
+.conversation-card strong {
+  max-width: 82%;
+}
+
+.conversation-date {
+  color: #8a874c !important;
+  font-size: 0.8rem !important;
+  font-weight: 600;
+}
+
+.conversation-preview {
+  max-width: 82%;
+  color: #655b59 !important;
+  font-size: 0.92rem !important;
+  line-height: 1.55 !important;
+}
+
+.flagged-conversation-card {
+  border-color: #d8bfc4;
+  border-left-color: #733143;
+  background: #fffafa;
+}
+
+.flagged-conversation-card:hover {
+  border-color: #733143;
+  border-left-color: #733143;
+}
+
+.conversation-flag-label {
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #f1dfe2;
+  color: #733143 !important;
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+}
+
+
+/* Open alert */
+
+.therapist-conversation-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  width: min(900px, 100%);
+  margin: 0 auto 36px;
+  box-sizing: border-box;
+  padding: 24px 26px;
+  border: 1px solid #d8bfc4;
+  border-left: 6px solid #733143;
+  border-radius: 18px;
+  background: #fbf1f1;
+}
+
+.therapist-alerts-label {
+  margin: 0 0 7px;
+  color: #733143;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+}
+
+.therapist-conversation-alert h2 {
+  margin: 0 0 7px;
+  color: #733143;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.65rem;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.therapist-conversation-alert p:last-child {
+  margin: 0;
+  color: #655b59;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.therapist-conversation-alert .chat-secondary-button {
+  flex-shrink: 0;
+}
+
+.therapist-reviewed-badge {
+  flex-shrink: 0;
+  padding: 9px 16px;
+  border: 1px solid #9da66d;
+  border-radius: 999px;
+  background: #f3f4e9;
+  color: #65703f;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+
+/* Transcript */
+
+.therapist-transcript {
+  display: grid;
+  gap: 22px;
+  width: min(900px, 100%);
+  margin: 0 auto;
+  padding: 8px 0 20px;
+}
+
+.therapist-message {
+  width: fit-content;
+  max-width: 75%;
+  box-sizing: border-box;
+  padding: 22px 24px;
+  border-radius: 22px;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 1rem;
+  line-height: 1.65;
+}
+
+.therapist-message.patient {
+  justify-self: end;
+  border: 1px solid #d4c2ba;
+  border-bottom-right-radius: 7px;
+  background: #f3e7e3;
+  color: #3f3434;
+}
+
+.therapist-message.ai {
+  justify-self: start;
+  border: 1px solid #d8dbc4;
+  border-bottom-left-radius: 7px;
+  background: #f5f5ea;
+  color: #3f3434;
+}
+
+.therapist-message-label {
+  margin: 0 0 10px;
+  color: #733143;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.therapist-message-content p {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.therapist-message-content p:last-child {
+  margin-bottom: 0;
+}
+
+.therapist-message-content ul,
+.therapist-message-content ol {
+  margin: 10px 0 10px 22px;
+}
+
+.therapist-status {
+  margin: 26px 0;
+  color: #655b59;
+  font-family: 'Montserrat', Arial, sans-serif;
+  text-align: center;
+}
+
+.therapist-error {
+  margin-top: 28px;
+}
+
+
+@media (max-width: 760px) {
+  .therapist-section {
+    padding: 28px 14px 50px;
+  }
+
+  .therapist-dashboard-card {
+    padding: 38px 24px 44px;
+    border-radius: 22px;
+  }
+
+  .therapist-dashboard-heading {
+    margin-bottom: 36px;
+  }
+
+  .therapist-dashboard-heading h1 {
+    font-size: 2.5rem;
+  }
+
+  .therapist-eyebrow {
+    font-size: 0.9rem;
+  }
+
+  .therapist-page-heading {
+    margin-bottom: 32px;
+  }
+
+  .therapist-page-heading h1 {
+    font-size: 2.5rem;
+  }
+
+  .therapist-section-title {
+    font-size: 1.7rem;
+  }
+
+  .therapist-list-item {
+    min-height: 120px;
+    padding: 20px 62px 20px 20px;
+  }
+
+  .therapist-list-item::after {
+    right: 20px;
+    font-size: 1.8rem;
+  }
+
+  .therapist-list-item strong {
+    font-size: 1.5rem;
+  }
+
+  .conversation-card strong,
+  .conversation-preview {
+    max-width: 100%;
+  }
+
+  .therapist-conversation-alert {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .therapist-message {
+    max-width: 92%;
+  }
+}

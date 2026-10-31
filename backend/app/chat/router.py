@@ -16,6 +16,7 @@ from app.chat.service import (
 from app.database import get_db
 from app.db_tables import User
 from app.safety.action import risk_response
+from app.safety.service import record_red_flag_and_notify
 from app.schemas import MessageCreate
 
 
@@ -145,12 +146,21 @@ def send_message(
                 content,
             )
 
-        save_chat_turn(
+        saved_patient_message = save_chat_turn(
             db,
             chat_id,
             content,
             assistant_reply,
         )
+
+        if safety_result["risk_lvl"] in ("medium", "high"):
+            record_red_flag_and_notify(
+                db=db,
+                patient_id=current_user.id,
+                conversation_id=chat_id,
+                message_id=saved_patient_message.id,
+                severity=safety_result["risk_lvl"],
+            )
 
     except OpenAIError as exc:
         raise HTTPException(

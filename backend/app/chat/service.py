@@ -206,25 +206,33 @@ def save_chat_turn(
     chat_id: int,
     user_message: str,
     assistant_message: str,
-) -> None:
-    """Save both sides of a conversation turn."""
+) -> Message:
+    """Save both sides of a conversation turn and return the patient message."""
+
+    patient_message = Message(
+        conversation_id=chat_id,
+        sender_type="patient",
+        content=user_message,
+    )
+
+    assistant_message_record = Message(
+        conversation_id=chat_id,
+        sender_type="assistant",
+        content=assistant_message,
+    )
 
     db.add_all(
         [
-            Message(
-                conversation_id=chat_id,
-                sender_type="patient",
-                content=user_message,
-            ),
-            Message(
-                conversation_id=chat_id,
-                sender_type="assistant",
-                content=assistant_message,
-            ),
+            patient_message,
+            assistant_message_record,
         ]
     )
 
     _commit_or_rollback(db)
+
+    db.refresh(patient_message)
+
+    return patient_message
 
 
 def _truncate_text(
