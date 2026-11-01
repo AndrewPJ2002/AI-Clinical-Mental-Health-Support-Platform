@@ -144,11 +144,11 @@
 /* PATIENT ACCESS */
 
 .login-card:not(.consent-card) .eyebrow {
-  margin-bottom: 8px;
+  margin-bottom: 14px;
   color: var(--sage);
-  font-size: 11px;
+  font-size: 17px;
   font-weight: 700;
-  letter-spacing: 2.4px;
+  letter-spacing: 1.4px;
 }
 
 /* HEADINGS */
@@ -299,7 +299,7 @@
   padding: 14px;
   border: none;
   border-radius: 9px;
-  background: var(--burgundy);
+  background: #8f5362;
   color: white;
   font-family: var(--sans);
   font-size: 15px;
@@ -383,7 +383,7 @@
 }
 
 .login-card:not(.consent-card) .create-account:hover {
-  background: var(--burgundy);
+  background: #8f5362;
   color: white;
   transform: translateY(-1px);
 }
@@ -691,3 +691,5 @@
     font-size: 12px;
   }
 }
+
+

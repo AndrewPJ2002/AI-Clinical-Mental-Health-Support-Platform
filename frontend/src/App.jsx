@@ -3,6 +3,7 @@ import './App.css'
 import './components/ChatScreen.css'
 import ChatScreen from './components/ChatScreen'
 import TherapistDashboard from './components/TherapistDashboard'
+import AdminDashboard from './components/AdminDashboard'
 
 
 const API_URL = 'http://127.0.0.1:8000'
@@ -268,11 +269,9 @@ function App() {
         }
 
         if (profileData.role === 'admin') {
-          sessionStorage.removeItem('access_token')
-
-          throw new Error(
-            'Administrator access is not available yet.',
-          )
+          setPassword('')
+          setScreen('admin')
+          return
         }
 
         if (profileData.role !== 'patient') {
@@ -344,6 +343,14 @@ function App() {
   if (screen === 'therapist') {
     return (
       <TherapistDashboard
+        onLogout={logout}
+      />
+    )
+  }
+
+  if (screen === 'admin') {
+    return (
+      <AdminDashboard
         onLogout={logout}
       />
     )

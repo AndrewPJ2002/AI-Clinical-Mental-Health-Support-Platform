@@ -1,3 +1,4 @@
+
 .therapist-page {
   min-height: 100vh;
   background: #fbf6f2;
@@ -21,8 +22,9 @@
   box-shadow: 0 18px 50px rgba(85, 50, 54, 0.08);
 }
 
-
-/* Dashboard */
+/* =========================================================
+   DASHBOARD
+   ========================================================= */
 
 .therapist-dashboard-heading {
   max-width: 760px;
@@ -74,8 +76,9 @@
   border-bottom: 1px solid #e4d8d3;
 }
 
-
-/* Cards */
+/* =========================================================
+   PATIENT AND CONVERSATION CARDS
+   ========================================================= */
 
 .therapist-list {
   display: grid;
@@ -104,7 +107,7 @@
     transform 160ms ease,
     box-shadow 160ms ease,
     border-color 160ms ease,
-    background 160ms ease;
+    background-color 160ms ease;
 }
 
 .therapist-list-item::after {
@@ -160,8 +163,9 @@
   overflow-wrap: anywhere;
 }
 
-
-/* Safety card */
+/* =========================================================
+   DASHBOARD SAFETY ALERT CARDS
+   ========================================================= */
 
 .therapist-alert-item {
   min-height: 132px;
@@ -192,28 +196,43 @@
   font-size: 0.9rem !important;
 }
 
-
-/* Patient conversation pages */
+/* =========================================================
+   PATIENT CONVERSATION PAGES
+   ========================================================= */
 
 .therapist-page-heading {
-  max-width: 850px;
-  margin: 0 auto 44px;
-  text-align: center;
+  max-width: 900px;
+  margin: 0 auto 28px;
+  text-align: left;
+}
+
+.therapist-page-heading .therapist-eyebrow {
+  margin-bottom: 8px;
+  font-size: 0.76rem;
+  letter-spacing: 0.12em;
 }
 
 .therapist-page-heading h1 {
   margin: 0;
   color: #733143;
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: clamp(2.7rem, 4vw, 3.8rem);
-  font-weight: 500;
-  line-height: 1.05;
+  font-size: clamp(2.3rem, 3.4vw, 3.1rem);
+  font-weight: 600;
+  line-height: 1.08;
+}
+
+.therapist-page-heading .therapist-subtitle {
+  margin: 7px 0 0;
+  color: #766866;
+  font-size: 0.88rem;
+  line-height: 1.5;
 }
 
 .therapist-toolbar {
   display: flex;
   justify-content: flex-start;
-  margin-bottom: 30px;
+  max-width: 900px;
+  margin: 0 auto 30px;
 }
 
 .therapist-back-button {
@@ -227,7 +246,7 @@
   font-weight: 600;
   cursor: pointer;
   transition:
-    background 160ms ease,
+    background-color 160ms ease,
     border-color 160ms ease,
     transform 160ms ease;
 }
@@ -238,8 +257,9 @@
   background: #f4eae6;
 }
 
-
-/* Conversation history */
+/* =========================================================
+   CONVERSATION HISTORY
+   ========================================================= */
 
 .conversation-card {
   min-height: 160px;
@@ -284,39 +304,54 @@
   letter-spacing: 0.07em;
 }
 
-
-/* Open alert */
+/* =========================================================
+   OPEN SAFETY ALERT
+   ========================================================= */
 
 .therapist-conversation-alert {
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 30px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
   width: min(900px, 100%);
-  margin: 0 auto 36px;
+  margin: 0 auto 28px;
   box-sizing: border-box;
-  padding: 24px 26px;
+  padding: 22px 26px;
   border: 1px solid #d8bfc4;
   border-left: 6px solid #733143;
-  border-radius: 18px;
+  border-radius: 16px;
   background: #fbf1f1;
+}
+
+.therapist-conversation-alert > div {
+  width: 100%;
+}
+
+/* Reserve space for the reviewed badge beside the alert heading */
+
+.therapist-conversation-alert:has(.therapist-reviewed-badge) > div {
+  box-sizing: border-box;
+  padding-right: 155px;
 }
 
 .therapist-alerts-label {
   margin: 0 0 7px;
   color: #733143;
   font-family: 'Montserrat', Arial, sans-serif;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.13em;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .therapist-conversation-alert h2 {
-  margin: 0 0 7px;
+  margin: 0 0 5px;
   color: #733143;
   font-family: 'Cormorant Garamond', Georgia, serif;
-  font-size: 1.65rem;
+  font-size: clamp(1.6rem, 2.5vw, 2rem);
   font-weight: 600;
+  line-height: 1.15;
   text-transform: capitalize;
 }
 
@@ -324,28 +359,89 @@
   margin: 0;
   color: #655b59;
   font-family: 'Montserrat', Arial, sans-serif;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   line-height: 1.5;
 }
 
+/* =========================================================
+   MARK REVIEWED BUTTON
+   ========================================================= */
+
 .therapist-conversation-alert .chat-secondary-button {
-  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-end;
+  flex: 0 0 auto;
+  width: fit-content;
+  max-width: 100%;
+  min-width: 168px;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 11px 20px;
+  border: none;
+  border-radius: 10px;
+  background: #e2c9cf;
+  color: #733143;
+  font-family: 'Montserrat', Arial, sans-serif;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.3;
+  opacity: 1;
+  cursor: pointer;
+  box-shadow: none;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease;
 }
+
+.therapist-conversation-alert .chat-secondary-button:hover:not(:disabled) {
+  border: none;
+  background: #733143;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(115, 49, 67, 0.12);
+}
+
+.therapist-conversation-alert .chat-secondary-button:focus-visible {
+  outline: 3px solid #9da66d;
+  outline-offset: 3px;
+}
+
+.therapist-conversation-alert .chat-secondary-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+/* =========================================================
+   REVIEWED STATUS: READ ONLY
+   ========================================================= */
 
 .therapist-reviewed-badge {
-  flex-shrink: 0;
+  position: absolute;
+  top: 20px;
+  right: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 9px 16px;
-  border: 1px solid #9da66d;
-  border-radius: 999px;
-  background: #f3f4e9;
-  color: #65703f;
+  border: none;
+  border-radius: 8px;
+  background: #e7ebdd;
+  color: #56654a;
   font-family: 'Montserrat', Arial, sans-serif;
-  font-size: 0.82rem;
+  font-size: 0.9rem;
   font-weight: 700;
+  line-height: 1.4;
+  white-space: nowrap;
+  cursor: default;
+  user-select: none;
+  box-shadow: none;
 }
 
-
-/* Transcript */
+/* =========================================================
+   TRANSCRIPT
+   ========================================================= */
 
 .therapist-transcript {
   display: grid;
@@ -416,6 +512,9 @@
   margin-top: 28px;
 }
 
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
 
 @media (max-width: 760px) {
   .therapist-section {
@@ -440,11 +539,15 @@
   }
 
   .therapist-page-heading {
-    margin-bottom: 32px;
+    margin-bottom: 24px;
   }
 
   .therapist-page-heading h1 {
-    font-size: 2.5rem;
+    font-size: 2.4rem;
+  }
+
+  .therapist-page-heading .therapist-eyebrow {
+    font-size: 0.72rem;
   }
 
   .therapist-section-title {
@@ -471,12 +574,39 @@
   }
 
   .therapist-conversation-alert {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 18px;
+    gap: 14px;
+    padding: 20px;
+  }
+
+  .therapist-conversation-alert .chat-secondary-button {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  .therapist-reviewed-badge {
+    top: 18px;
+    right: 20px;
+    font-size: 0.84rem;
+    padding: 8px 12px;
+  }
+
+  .therapist-conversation-alert:has(.therapist-reviewed-badge) > div {
+    padding-right: 120px;
   }
 
   .therapist-message {
     max-width: 92%;
+  }
+}
+
+@media (max-width: 480px) {
+  .therapist-reviewed-badge {
+    position: static;
+    align-self: flex-start;
+    order: -1;
+  }
+
+  .therapist-conversation-alert:has(.therapist-reviewed-badge) > div {
+    padding-right: 0;
   }
 }
