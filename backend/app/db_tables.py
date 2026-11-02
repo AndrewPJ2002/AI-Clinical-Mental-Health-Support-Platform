@@ -13,7 +13,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.dialects.postgresql import ENUM as PGEnum
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Column, Integer, String, Text
 from app.database import Base
 
 
@@ -140,7 +139,7 @@ class ConsentAcknowledgement(Base):
 class KnowledgeChunk(Base):
     __tablename__ = "knowledge_chunks"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(BigInteger, primary_key=True)
 
     source_document = Column(String)
 

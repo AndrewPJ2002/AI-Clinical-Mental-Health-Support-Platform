@@ -1,5 +1,6 @@
+from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class UserCreate(BaseModel):
@@ -30,3 +31,17 @@ class ChatCreate(BaseModel):
 
 class MessageCreate(BaseModel):
     content: str = Field(min_length=1, max_length=10000)
+
+
+class ChatRead(BaseModel):
+    id: int
+    title: str
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class MessageTurnResponse(BaseModel):
+    chat_id: int
+    user_message: str
+    assistant_message: str
+    risk_level: Literal["high", "medium", "low"]

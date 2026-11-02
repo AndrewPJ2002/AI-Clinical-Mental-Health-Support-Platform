@@ -15,7 +15,6 @@ from app.chat.service import (
 )
 from app.database import get_db
 from app.db_tables import User
-from app.knowledge_base import get_relevant_knowledge
 from app.safety.action import risk_response
 from app.schemas import MessageCreate
 from app.retr_aug_gen import retrieve_context
@@ -148,15 +147,6 @@ def send_message(
                 knowledge_context,
             )
 
-            if knowledge_context:
-                print("USING KNOWLEDGE BASE")
-            else:
-                print("NO KNOWLEDGE BASE USED")
-
-            assistant_reply = generate_reply(
-                history,
-                content,
-            )
 
         save_chat_turn(
             db,

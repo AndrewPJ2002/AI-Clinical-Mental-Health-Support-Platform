@@ -1,4 +1,4 @@
-# endpoints
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -39,3 +39,11 @@ def get_current_user(
         raise unauthorized
 
     return user
+
+
+def get_current_user_id(
+    current_user: User = Depends(get_current_user),
+) -> int:
+    """Return the ID of the authenticated, active user."""
+
+    return current_user.id

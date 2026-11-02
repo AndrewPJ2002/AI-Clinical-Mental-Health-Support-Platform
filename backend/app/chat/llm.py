@@ -1,18 +1,22 @@
-from collections.abc import Mapping, Sequence
+from typing import Mapping, Sequence
 
 from openai import OpenAI
 
 from app.config import settings
 
-#prompt construction (tested successfully)
-# python -c "from app.chat.llm import build_prompt; print(build_prompt([{'role': 'user', 'content': 'Hi'}, {'role': 'assistant', 'content': 'Hello!'}], 'How are you?'))"
-# tested succesfully
-SYSTEM_PROMPT = """You are a supportive mental health companion.
-Respond with empathy, respect, and practical, nonjudgmental support.
-Do not diagnose, prescribe treatment, or claim to replace a licensed
-mental health professional. Encourage the user to seek professional support
-when appropriate. If the user may be in immediate danger, encourage them to
-contact local emergency services or a trusted person who can help right away."""
+
+SYSTEM_PROMPT = """
+You are a supportive mental health companion.
+
+Be empathetic, respectful, and nonjudgmental. Listen carefully and
+respond in a calm, supportive manner.
+
+You are not a therapist, doctor, or emergency service. Do not diagnose
+conditions or claim to provide professional treatment.
+
+If the user appears to be in immediate danger, encourage them to contact
+local emergency services or a trusted person who can help.
+"""
 
 
 def build_prompt(
@@ -21,19 +25,20 @@ def build_prompt(
     knowledge_context: str = "",
 ) -> list[dict[str, str]]:
     """Build the OpenAI chat messages from prior turns and the current message."""
+
     system_content = SYSTEM_PROMPT
-    if knowledge_context:
+
+    if knowledge_context.strip():
         system_content += (
-        "\n\nKNOWLEDGE BASE CONTENT\n"
-        "----------------------\n"
-        f"{knowledge_context}"
-        "\n\nIMPORTANT:\n"
-        "Answer ONLY from the knowledge-base content above. "
-        "If the answer is not found in the knowledge base, respond exactly with: "
-        "'I do not see that information in the knowledge base.' "
-        "Do not add facts, resources, worksheets, recommendations, or advice from your own knowledge. "
-        "Do not invent information. "
-        "Do not present information as a diagnosis.\n\n"
+            "\n\nRETRIEVED KNOWLEDGE-BASE CONTENT\n"
+            "--------------------------------\n"
+            f"{knowledge_context}\n\n"
+            "Use the retrieved content when it is relevant to the user's "
+            "question. Do not invent facts, citations, or resources, and "
+            "do not claim that information comes from the knowledge base "
+            "unless it appears in the retrieved content. If the retrieved "
+            "content does not answer the question, be transparent about "
+            "that limitation while remaining supportive.\n"
         )
 
     messages = [{"role": "system", "content": system_content}]
@@ -41,24 +46,24 @@ def build_prompt(
     for turn in conversation_history:
         role = turn.get("role")
         content = turn.get("content")
-        if role not in {"user", "assistant"} or not isinstance(content, str):
-            raise ValueError("Conversation history must contain user/assistant roles and string content.")
-        messages.append({"role": role, "content": content})
+
+        if role in {"user", "assistant"} and content:
+            messages.append({"role": role, "content": content})
 
     messages.append({"role": "user", "content": user_message})
+
     return messages
 
-# LLM reply generation (tested successfully)
-# python -c "from app.chat.llm import generate_reply; print(generate_reply([], 'I have been feeling stressed lately.'))"
-# tested succesfully
 
 def generate_reply(
     conversation_history: Sequence[Mapping[str, str]],
     user_message: str,
     knowledge_context: str = "",
 ) -> str:
-    """Generate an assistant reply using prior conversation turns."""
+    """Generate an assistant reply using conversation history and retrieved context."""
+
     client = OpenAI(api_key=settings.open_api_key)
+
     response = client.chat.completions.create(
         model=settings.openapi_model,
         messages=build_prompt(
@@ -69,8 +74,8 @@ def generate_reply(
     )
 
     reply = response.choices[0].message.content
+
     if reply is None:
         raise RuntimeError("OpenAI returned an empty assistant reply.")
-    print("KNOWLEDGE CONTEXT:")
-    print(knowledge_context)
+
     return reply
