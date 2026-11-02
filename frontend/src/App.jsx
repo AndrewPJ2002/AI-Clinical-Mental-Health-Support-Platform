@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react'
 import './App.css'
 import './components/ChatScreen.css'
@@ -596,7 +597,9 @@ function App() {
       <section className="login-section">
         <div className="login-card">
           <p className="eyebrow">
-            PATIENT ACCESS
+            {isRegistering
+              ? 'PATIENT REGISTRATION'
+              : 'SECURE PORTAL ACCESS'}
           </p>
 
           <h1>
@@ -607,8 +610,8 @@ function App() {
 
           <p className="login-subtitle">
             {isRegistering
-              ? 'Create your account to continue.'
-              : 'Sign in or create an account to continue.'}
+              ? 'Create your patient account to continue.'
+              : 'Patients, therapists, and administrators can sign in below.'}
           </p>
 
           <form
@@ -769,7 +772,7 @@ function App() {
               {loading
                 ? 'Please wait...'
                 : isRegistering
-                  ? 'Create Account'
+                  ? 'Create Patient Account'
                   : 'Sign In'}
             </button>
           </form>
@@ -791,7 +794,7 @@ function App() {
           <p className="account-prompt">
             {isRegistering
               ? 'Already have an account?'
-              : "Don't have an account?"}
+              : 'New patient?'}
           </p>
 
           <button
@@ -807,7 +810,7 @@ function App() {
           >
             {isRegistering
               ? 'Sign In'
-              : 'Create Account'}
+              : 'Create Patient Account'}
           </button>
         </div>
       </section>
