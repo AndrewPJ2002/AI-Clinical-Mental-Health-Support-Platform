@@ -15,12 +15,14 @@ Patient Workflow*
     4.) Read Knowledge Base
 - For first time users, create account with name, email address, and password; agree to terms and conditions after logging in with newly created credentials
 
-Current Known Limitations
-    - Sign out functionality has not yet been implemented. (Medium Severity)
-    - Chat responses currently return a placeholder message indicating backend integration is pending. (Medium Severity)
-    - Newly created conversations are not displayed in the chat history. (Medium Severity)
+Therapist Workflow
+    1.) Login
+    2.) Assigned patients, including patients with flagged conversation(s)
+    3.) Click on a patient, and the therapist can see the conversations from the patient.
+    4.) Clicking on a flagged conversation has the option for the therapist to mark the conversation as reviewed.
 
-Environment Status
-    - Backend successfully starts and runs without errors.
-    - Frontend successfully builds and runs without errors.
-    - User authentication and application navigation are operational.
+Admin Workflow
+    1.) Login
+    2.) Check dashboard to see the total number of users, including how many therapists and patients have registered.
+    3.) Click a hyperlink on the dashboard to see the directory of all the accounts for the website, including details like name, email, role, and date of account creation.
+    4.) The admin can check and even re-assign a therapist to a particular patient.
