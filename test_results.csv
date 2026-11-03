@@ -1,0 +1,21 @@
+Feature Tested, Preconditions, Test Steps, Expected Result, Actual Result, Status
+Logout Functionality, User successfully logged in, "Navigate through the application and locate the logout/sign out option.", A visible logout/sign out button should be available and terminate the user session when selected.,
+    No logout or sign out option is available anywhere in the application., FAIL
+Chat Response Generation, Backend and frontend running, "Open the chat interface, enter a prompt, and submit it.", System should generate a response based on user input., 
+    System displays a placeholder message indicating responses will be generated once backend integration is completed., FAIL
+Conversation History, User logged in and able to create a conversation, "Create a new conversation and check the chat history panel.", New conversation should appear in the conversation history list.,
+    Newly created conversation does not appear in the chat history section., FAIL
+
+Chat Response Generation Update - 10/25/2026
+    - Placeholder no longer shows up, but got a message saying that the AI service is unavailable (3:11 PM).
+
+Existing User Login - 10/25-2026
+    - Successful login for returning user using created credentials; consent, disclosure, and disclaimer pages do not show up,
+    but the application goes straight to the chat window.
+
+Response to Prompts - 10/26/2026
+    - Getting a proper response instead of a placeholder message. 
+    - Refining the backend to make the response come from the existing knowledge bases instead of the AI.
+    - Able to get a response for the prompt from the knowledge base, but as LLMs tend to do, the content from 
+    the knowledge base is somewhat paraphrased.
+    - Further refining needed to downsize the list of potential keywords in prompt to make more RAG type.

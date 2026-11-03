@@ -1,40 +1,231 @@
-from sqlalchemy import Column, DateTime, ForeignKey, Integer, String, Text, func
-from sqlalchemy.orm import relationship
+# postgre tables go here
 
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
+from sqlalchemy.dialects.postgresql import ENUM as PGEnum
+from pgvector.sqlalchemy import Vector
 from app.database import Base
+
+
+# Reuse the PostgreSQL enums that already exist in Supabase.
+# create_type=False prevents SQLAlchemy from trying to create them.
+user_role_enum = PGEnum(
+    "patient",
+    "therapist",
+    "admin",
+    name="user_role",
+    create_type=False,
+)
+
+sender_type_enum = PGEnum(
+    "patient",
+    "assistant",
+    name="sender_type",
+    create_type=False,
+)
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
-    email = Column(String, unique=True, nullable=False, index=True)
-    hashed_password = Column(String, nullable=False)
-    chats = relationship("Chat", back_populates="owner")
-
-
-class Chat(Base):
-    __tablename__ = "chats"
-
-    id = Column(Integer, primary_key=True, index=True)
-    title = Column(String, nullable=False, default="New chat")
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    owner = relationship("User", back_populates="chats")
-    messages = relationship(
-        "ChatMessage",
-        back_populates="chat",
-        cascade="all, delete-orphan",
-        order_by="ChatMessage.id",
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    email = Column(String, nullable=False, unique=True)
+    password_hash = Column(String, nullable=False)
+    role = Column(user_role_enum, nullable=False)
+    first_name = Column(String, nullable=False)
+    last_name = Column(String, nullable=False)
+    is_active = Column(Boolean, nullable=False, server_default="true")
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
     )
 
 
-class ChatMessage(Base):
-    __tablename__ = "chat_messages"
+class TherapistPatientAssignment(Base):
+    __tablename__ = "therapist_patient_assignments"
 
-    id = Column(Integer, primary_key=True, index=True)
-    chat_id = Column(Integer, ForeignKey("chats.id"), nullable=False, index=True)
-    role = Column(String, nullable=False)
+    __table_args__ = (
+        UniqueConstraint(
+            "therapist_id",
+            "patient_id",
+            name="unique_therapist_patient",
+        ),
+    )
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    therapist_id = Column(
+        BigInteger,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    patient_id = Column(
+        BigInteger,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class Conversation(Base):
+    __tablename__ = "conversations"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    patient_id = Column(
+        BigInteger,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    started_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    ended_at = Column(DateTime(timezone=True), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class Message(Base):
+    __tablename__ = "messages"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    conversation_id = Column(
+        BigInteger,
+        ForeignKey("conversations.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    sender_type = Column(sender_type_enum, nullable=False)
     content = Column(Text, nullable=False)
-    created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    chat = relationship("Chat", back_populates="messages")
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class ConsentAcknowledgement(Base):
+    __tablename__ = "consent_acknowledgements"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    user_id = Column(BigInteger, nullable=False)
+    disclosure_version = Column(String, nullable=False)
+    acknowledged_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+class KnowledgeChunk(Base):
+    __tablename__ = "knowledge_chunks"
+
+    id = Column(BigInteger, primary_key=True)
+    source_document = Column(String)
+    content = Column(Text)
+    embedding = Column(Vector(384))
+
+
+class RedFlagDefinition(Base):
+    __tablename__ = "red_flag_definitions"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    name = Column(String(255), nullable=False)
+    description = Column(Text, nullable=True)
+    detection_pattern = Column(Text, nullable=False)
+    severity = Column(String(50), nullable=False)
+    is_active = Column(
+        Boolean,
+        nullable=False,
+        server_default="true",
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class RedFlagEvent(Base):
+    __tablename__ = "red_flag_events"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    message_id = Column(
+        BigInteger,
+        ForeignKey("messages.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    red_flag_definition_id = Column(
+        BigInteger,
+        ForeignKey("red_flag_definitions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    patient_id = Column(
+        BigInteger,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    conversation_id = Column(
+        BigInteger,
+        ForeignKey("conversations.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    severity = Column(String(50), nullable=False)
+    detected_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+    status = Column(String(50), nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    recipient_user_id = Column(
+        BigInteger,
+        ForeignKey("users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    red_flag_event_id = Column(
+        BigInteger,
+        ForeignKey("red_flag_events.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    type = Column(String(50), nullable=False)
+    message = Column(Text, nullable=False)
+    is_read = Column(
+        Boolean,
+        nullable=False,
+        server_default="false",
+    )
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )

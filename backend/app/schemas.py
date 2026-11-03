@@ -1,31 +1,36 @@
-#response /request schemas
-
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, Field
 
-#response schema for user creation
+
 class UserCreate(BaseModel):
-    email: str
-    password: str
+    email: str = Field(min_length=3, max_length=320)
+    password: str = Field(min_length=12, max_length=72)
+    first_name: str = Field(min_length=1, max_length=100)
+    last_name: str = Field(min_length=1, max_length=100)
 
-#response schema for user login
+
+class UserLogin(BaseModel):
+    email: str = Field(min_length=3, max_length=320)
+    password: str = Field(min_length=1, max_length=1024)
+
+
 class UserResponse(BaseModel):
     id: int
     email: str
 
-# backend returns after login
+
 class Token(BaseModel):
     access_token: str
-    token_type: str
+    token_type: str = "bearer"
+
 
 class ChatCreate(BaseModel):
     title: str = "New chat"
 
 
-# React sends this to backend to create a new message in the chat
 class MessageCreate(BaseModel):
-    content: str
+    content: str = Field(min_length=1, max_length=10000)
 
 
 class ChatRead(BaseModel):

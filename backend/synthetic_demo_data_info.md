@@ -1,9 +1,11 @@
 # Synthetic Demo Data Overview
 
 ## Purpose
+
 The synthetic demo data file (`Paul_M2_Synthetic_Demo_Data.json`) provides all sample records used during Milestone 2 demonstrations and testing. It contains fictional patients, therapists, an admin user, role assignments, and conversation histories. This dataset ensures the system can display meaningful content even before real database integration is completed.
 
 The file is designed to support:
+
 - Functional testing
 - UI rendering in the React frontend
 - Demo walkthroughs
@@ -18,7 +20,6 @@ All data is fully synthetic and safe for academic use.
 
 The demo data file is stored in: backend/Paul_M2_Synthetic_Demo_Data.json
 
-
 This location keeps the dataset close to the backend code that will load it while maintaining a clean separation from the frontend.
 
 ---
@@ -32,6 +33,7 @@ The Python FastAPI backend reads the JSON file and exposes its contents through 
 1. FastAPI receives a request at: GET /api/Paul_M2_Synthetic_Demo_Data
 
 2. The backend will load the JSON file:
+
 ```python
 with open("backend/Paul_M2_Synthetic_Demo_Data.json") as f:
     data = json.load(f)
@@ -57,4 +59,4 @@ Once loaded, the frontend uses the data to populate:
 - Assignment lists
 
 This ensures the UI displays realistic content during demos and testing.
-
+```

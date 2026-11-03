@@ -1,0 +1,20 @@
+Summary, Steps to Reproduce, Expected Result, Actual Result, Severity, Status
+No sign out functionality available, "Login with any user account and navigate through the application.", User should be able to sign out using a visible logout/sign out option.,
+    No logout or sign out option exists within the current interface., Medium, Open
+Chat returns placeholder response instead of generating output, "Login, open the chat page, enter a prompt, and submit it.", System should generate a meaningful response based on the prompt.,
+    Application displays a message indicating backend integration has not yet been implemented., Medium, Open
+New conversations are not displayed in chat history,"Login, create a new conversation, and review the chat history panel.",New conversation should be visible in the conversation history list.,
+    Conversation is not added to or displayed in the chat history section., Medium, Open
+
+New Updates - 10/25/2026
+    - Got an AI service is unavailable at 3:11 PM when testing with a new user.
+    - Tested it by logging in with the same user, but the chat response is still, "AI service is unavailable."
+
+Updates - 11/01/2026
+    - The LLM refers to the knowledge base documents for giving a response to the user's prompt.
+    - The user can access the conversation history, and he can go back and carry on from a previous conversation.
+    - The sign-out button functions, and the user can sign out without an issue.
+    - The therapist can see the assigned users, the conversations they've had, including conversations that are high risk/red-flag level, and he has the option to mark a red-flag conversation as reviewed.
+    - The admin dashboard gives how many total users there are, including the number of patients, therapists, and administrators; the tabs are hyperlinks to see more details about each user, the conversations that are flagged, and which users each therapist has.
+    - The admin can see the user directory and find details about the users like email, name, role, and date of creation.
+    - The operations tab gives information about where the LLM gets information to answer the prompts, the supported roles, and the AI agent performing the tasks.
