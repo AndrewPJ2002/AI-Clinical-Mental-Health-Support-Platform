@@ -411,6 +411,28 @@ def remove_patient_assignment(
     db: Session,
     patient_id: int,
 ) -> bool:
+    outstanding_alert = (
+        db.query(RedFlagEvent)
+        .filter(
+            RedFlagEvent.patient_id == patient_id,
+            RedFlagEvent.severity == "high",
+            RedFlagEvent.status == "unreviewed",
+        )
+        .first()
+    )
+
+    if outstanding_alert:
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=409,
+            detail=(
+                "Cannot unassign patient: "
+                "outstanding high-risk safety alerts "
+                "must be reviewed first."
+            ),
+        )
+
     assignments = (
         db.query(TherapistPatientAssignment)
         .filter(
