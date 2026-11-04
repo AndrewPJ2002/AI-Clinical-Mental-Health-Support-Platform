@@ -20,6 +20,7 @@ function AdminDashboard({ onLogout }) {
   const [loading, setLoading] = useState(true)
   const [savingPatientId, setSavingPatientId] = useState(null)
   const [error, setError] = useState('')
+  const [unassignWarning, setUnassignWarning] = useState(null)
 
   useEffect(() => {
     loadAdminData()
@@ -57,7 +58,9 @@ function AdminDashboard({ onLogout }) {
         // Keep the default message.
       }
 
-      throw new Error(message)
+      const requestError = new Error(message)
+      requestError.status = response.status
+      throw requestError
     }
 
     if (response.status === 204) {
@@ -155,26 +158,70 @@ function AdminDashboard({ onLogout }) {
     }
   }
 
-  async function handleRemoveAssignment(patientId) {
-    const confirmed = window.confirm(
-      "Unassign Therapist?\n\nThis will remove the patient's current therapist assignment. The patient account and conversation history will not be deleted."
+  function hasOutstandingHighRiskAlert(patientId, activity) {
+    return activity.some(
+      (event) =>
+        String(event.patient_id) === String(patientId) &&
+        String(event.severity || '').toLowerCase() === 'high' &&
+        String(event.status || '').toLowerCase() !== 'reviewed'
     )
+  }
 
-    if (!confirmed) {
-      return
-    }
+  function showUnassignBlockedWarning() {
+    setUnassignWarning({
+      title: 'Cannot Unassign Therapist',
+      message:
+        'This patient has an outstanding high-risk safety alert that requires therapist review. The therapist cannot be unassigned until all high-risk safety alerts have been reviewed.',
+    })
+  }
+
+  async function handleRemoveAssignment(patientId) {
+    if (savingPatientId !== null) return
 
     setSavingPatientId(patientId)
     setError('')
 
     try {
+      // Check current safety activity before offering confirmation.
+      const safetyData = await apiRequest('/admin/safety')
+      const latestActivity = safetyData.activity || []
+
+      setSafetyActivity(latestActivity)
+
+      if (hasOutstandingHighRiskAlert(patientId, latestActivity)) {
+        showUnassignBlockedWarning()
+        return
+      }
+
+      // Preserve confirmation for eligible patients.
+      const confirmed = window.confirm(
+        "Unassign Therapist?\n\nThis will remove the patient's current therapist assignment. The patient account and conversation history will not be deleted."
+      )
+
+      if (!confirmed) {
+        return
+      }
+
       await apiRequest(`/admin/assignments/${patientId}`, {
         method: 'DELETE',
       })
 
       await refreshAssignmentsAndSummary()
     } catch (err) {
-      setError(err.message)
+      // The backend remains the authority if safety status changes.
+      const safetyRelatedError =
+        err.status === 409 ||
+        (err.status === 403 &&
+          /safety|risk|review|flag|alert/i.test(err.message)) ||
+        /unreviewed.*(high|risk|alert)|high.risk|safety alert/i.test(
+          err.message
+        )
+
+      if (safetyRelatedError) {
+        showUnassignBlockedWarning()
+      } else {
+        setError(err.message)
+      }
     } finally {
       setSavingPatientId(null)
     }
@@ -337,9 +384,7 @@ function AdminDashboard({ onLogout }) {
       <main className="admin-main">
         <section className="admin-panel">
           <div className="admin-page-intro">
-            <h1>
-              Operations Center
-            </h1>
+            <h1>Operations Center</h1>
 
             <p>
               Manage users, therapist assignments, and safety activity.
@@ -402,10 +447,7 @@ function AdminDashboard({ onLogout }) {
           </nav>
 
           {error && (
-            <div
-              className="admin-error"
-              role="alert"
-            >
+            <div className="admin-error" role="alert">
               {error}
             </div>
           )}
@@ -447,9 +489,7 @@ function AdminDashboard({ onLogout }) {
                   className="admin-metric-card"
                   onClick={() => openUsers('patient', true)}
                 >
-                  <span className="admin-card-chevron">
-                    ›
-                  </span>
+                  <span className="admin-card-chevron">›</span>
 
                   <span className="admin-metric-number">
                     {summary?.active_patients ?? 0}
@@ -465,9 +505,7 @@ function AdminDashboard({ onLogout }) {
                   className="admin-metric-card"
                   onClick={() => openUsers('therapist', true)}
                 >
-                  <span className="admin-card-chevron">
-                    ›
-                  </span>
+                  <span className="admin-card-chevron">›</span>
 
                   <span className="admin-metric-number">
                     {summary?.active_therapists ?? 0}
@@ -481,13 +519,9 @@ function AdminDashboard({ onLogout }) {
                 <button
                   type="button"
                   className="admin-metric-card"
-                  onClick={() =>
-                    openDashboardSection('assignments')
-                  }
+                  onClick={() => openDashboardSection('assignments')}
                 >
-                  <span className="admin-card-chevron">
-                    ›
-                  </span>
+                  <span className="admin-card-chevron">›</span>
 
                   <span className="admin-metric-number">
                     {summary?.assignments ?? 0}
@@ -501,13 +535,9 @@ function AdminDashboard({ onLogout }) {
                 <button
                   type="button"
                   className="admin-metric-card"
-                  onClick={() =>
-                    openDashboardSection('safety')
-                  }
+                  onClick={() => openDashboardSection('safety')}
                 >
-                  <span className="admin-card-chevron">
-                    ›
-                  </span>
+                  <span className="admin-card-chevron">›</span>
 
                   <span className="admin-metric-number">
                     {summary?.unreviewed_flags ?? 0}
@@ -520,21 +550,15 @@ function AdminDashboard({ onLogout }) {
               </div>
 
               <section className="admin-section">
-                <h2>
-                  Quick Actions
-                </h2>
+                <h2>Quick Actions</h2>
 
                 <div className="admin-action-grid">
                   <button
                     type="button"
                     className="admin-action-card"
-                    onClick={() =>
-                      openDashboardSection('assignments')
-                    }
+                    onClick={() => openDashboardSection('assignments')}
                   >
-                    <span className="admin-action-chevron">
-                      ›
-                    </span>
+                    <span className="admin-action-chevron">›</span>
 
                     <span className="admin-action-title">
                       Patient Assignments
@@ -550,9 +574,7 @@ function AdminDashboard({ onLogout }) {
                     className="admin-action-card"
                     onClick={() => openUsers('all', true)}
                   >
-                    <span className="admin-action-chevron">
-                      ›
-                    </span>
+                    <span className="admin-action-chevron">›</span>
 
                     <span className="admin-action-title">
                       User Directory
@@ -571,9 +593,7 @@ function AdminDashboard({ onLogout }) {
             <section className="admin-content-section">
               <div className="admin-section-heading">
                 <div>
-                  <h2>
-                    Patient Assignments
-                  </h2>
+                  <h2>Patient Assignments</h2>
 
                   <p>
                     Assign each active patient to the appropriate therapist.
@@ -603,9 +623,7 @@ function AdminDashboard({ onLogout }) {
                           {assignment.patient_last_name}
                         </h3>
 
-                        <p>
-                          {assignment.patient_email}
-                        </p>
+                        <p>{assignment.patient_email}</p>
                       </div>
 
                       <div className="admin-current-assignment">
@@ -662,13 +680,10 @@ function AdminDashboard({ onLogout }) {
                           disabled={
                             !selectedTherapistId ||
                             !selectionChanged ||
-                            savingPatientId ===
-                              assignment.patient_id
+                            savingPatientId === assignment.patient_id
                           }
                           onClick={() =>
-                            handleSaveAssignment(
-                              assignment.patient_id,
-                            )
+                            handleSaveAssignment(assignment.patient_id)
                           }
                         >
                           {savingPatientId === assignment.patient_id
@@ -683,12 +698,11 @@ function AdminDashboard({ onLogout }) {
                             type="button"
                             className="admin-secondary-button"
                             disabled={
-                              savingPatientId ===
-                              assignment.patient_id
+                              savingPatientId === assignment.patient_id
                             }
                             onClick={() =>
                               handleRemoveAssignment(
-                                assignment.patient_id,
+                                assignment.patient_id
                               )
                             }
                           >
@@ -707,9 +721,7 @@ function AdminDashboard({ onLogout }) {
             <section className="admin-content-section">
               <div className="admin-section-heading">
                 <div>
-                  <h2>
-                    User Directory
-                  </h2>
+                  <h2>User Directory</h2>
 
                   <p>
                     Review patient, therapist, and administrator accounts.
@@ -741,9 +753,7 @@ function AdminDashboard({ onLogout }) {
                 <button
                   type="button"
                   className={`admin-filter-button ${
-                    userRoleFilter === 'therapist'
-                      ? 'active'
-                      : ''
+                    userRoleFilter === 'therapist' ? 'active' : ''
                   }`}
                   onClick={() => setUserRoleFilter('therapist')}
                 >
@@ -781,31 +791,21 @@ function AdminDashboard({ onLogout }) {
                           {user.last_name}
                         </td>
 
-                        <td>
-                          {user.email}
-                        </td>
+                        <td>{user.email}</td>
 
-                        <td>
-                          {roleLabel(user.role)}
-                        </td>
+                        <td>{roleLabel(user.role)}</td>
 
                         <td>
                           <span
                             className={`admin-status ${
-                              user.is_active
-                                ? 'active'
-                                : 'inactive'
+                              user.is_active ? 'active' : 'inactive'
                             }`}
                           >
-                            {user.is_active
-                              ? 'Active'
-                              : 'Inactive'}
+                            {user.is_active ? 'Active' : 'Inactive'}
                           </span>
                         </td>
 
-                        <td>
-                          {formatDate(user.created_at)}
-                        </td>
+                        <td>{formatDate(user.created_at)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -818,9 +818,7 @@ function AdminDashboard({ onLogout }) {
             <section className="admin-content-section">
               <div className="admin-section-heading">
                 <div>
-                  <h2>
-                    Safety Activity
-                  </h2>
+                  <h2>Safety Activity</h2>
 
                   <p>
                     Monitor safety event status without accessing private
@@ -884,9 +882,7 @@ function AdminDashboard({ onLogout }) {
                             </span>
                           </td>
 
-                          <td>
-                            {formatDateTime(event.detected_at)}
-                          </td>
+                          <td>{formatDateTime(event.detected_at)}</td>
 
                           <td>
                             {event.therapist_id
@@ -906,9 +902,7 @@ function AdminDashboard({ onLogout }) {
             <section className="admin-content-section">
               <div className="admin-section-heading">
                 <div>
-                  <h2>
-                    System Status
-                  </h2>
+                  <h2>System Status</h2>
 
                   <p>
                     Review the current knowledge base and platform configuration.
@@ -921,15 +915,11 @@ function AdminDashboard({ onLogout }) {
               </div>
 
               <div className="admin-system-section">
-                <h3>
-                  Knowledge Base
-                </h3>
+                <h3>Knowledge Base</h3>
 
                 <div className="admin-config-list">
                   <div className="admin-config-row">
-                    <span>
-                      Status
-                    </span>
+                    <span>Status</span>
 
                     <strong>
                       {systemMetadata?.knowledge_base?.configured
@@ -939,9 +929,7 @@ function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="admin-config-row">
-                    <span>
-                      Source Documents
-                    </span>
+                    <span>Source Documents</span>
 
                     <strong>
                       {systemMetadata?.knowledge_base
@@ -950,9 +938,7 @@ function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="admin-config-row">
-                    <span>
-                      Knowledge Chunks
-                    </span>
+                    <span>Knowledge Chunks</span>
 
                     <strong>
                       {systemMetadata?.knowledge_base
@@ -983,15 +969,11 @@ function AdminDashboard({ onLogout }) {
               </div>
 
               <div className="admin-system-section">
-                <h3>
-                  Platform Status
-                </h3>
+                <h3>Platform Status</h3>
 
                 <div className="admin-config-list">
                   <div className="admin-config-row">
-                    <span>
-                      Authentication
-                    </span>
+                    <span>Authentication</span>
 
                     <strong>
                       {systemMetadata?.system
@@ -1002,9 +984,7 @@ function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="admin-config-row">
-                    <span>
-                      Supported Roles
-                    </span>
+                    <span>Supported Roles</span>
 
                     <strong>
                       {(
@@ -1017,9 +997,7 @@ function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="admin-config-row">
-                    <span>
-                      Therapist Assignment Enforcement
-                    </span>
+                    <span>Therapist Assignment Enforcement</span>
 
                     <strong>
                       {systemMetadata?.system
@@ -1030,9 +1008,7 @@ function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="admin-config-row">
-                    <span>
-                      Safety Monitoring
-                    </span>
+                    <span>Safety Monitoring</span>
 
                     <strong>
                       {systemMetadata?.system
@@ -1043,23 +1019,18 @@ function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="admin-config-row">
-                    <span>
-                      Administrator Transcript Access
-                    </span>
+                    <span>Administrator Transcript Access</span>
 
                     <strong>
                       {systemMetadata?.system
-                        ?.admin_transcript_access ===
-                      'restricted'
+                        ?.admin_transcript_access === 'restricted'
                         ? 'Restricted'
                         : 'Available'}
                     </strong>
                   </div>
 
                   <div className="admin-config-row">
-                    <span>
-                      Session Duration
-                    </span>
+                    <span>Session Duration</span>
 
                     <strong>
                       {systemMetadata?.system
@@ -1069,9 +1040,7 @@ function AdminDashboard({ onLogout }) {
                   </div>
 
                   <div className="admin-config-row">
-                    <span>
-                      AI Model
-                    </span>
+                    <span>AI Model</span>
 
                     <strong>
                       {systemMetadata?.system?.ai_model ||
@@ -1084,6 +1053,88 @@ function AdminDashboard({ onLogout }) {
           )}
         </section>
       </main>
+
+      {unassignWarning && (
+        <div
+          role="presentation"
+          onClick={() => setUnassignWarning(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 10000,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 20,
+            background: 'rgba(42, 30, 34, 0.58)',
+          }}
+        >
+          <section
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="admin-unassign-warning-title"
+            aria-describedby="admin-unassign-warning-message"
+            onClick={(event) => event.stopPropagation()}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                setUnassignWarning(null)
+              }
+            }}
+            style={{
+              width: 'min(460px, 100%)',
+              boxSizing: 'border-box',
+              background: '#fffaf7',
+              border: '1px solid #d8bfc4',
+              borderTop: '5px solid #a63842',
+              borderRadius: 18,
+              padding: '28px 30px',
+              boxShadow: '0 24px 60px rgba(35, 20, 25, 0.23)',
+            }}
+          >
+            <h2
+              id="admin-unassign-warning-title"
+              style={{
+                margin: '0 0 14px',
+                color: '#733143',
+                fontFamily: "'Cormorant Garamond', Georgia, serif",
+                fontSize: '2rem',
+                fontWeight: 600,
+              }}
+            >
+              {unassignWarning.title}
+            </h2>
+
+            <p
+              id="admin-unassign-warning-message"
+              style={{
+                margin: '0 0 24px',
+                color: '#594a4a',
+                fontFamily: "'Montserrat', Arial, sans-serif",
+                fontSize: '0.92rem',
+                lineHeight: 1.7,
+              }}
+            >
+              {unassignWarning.message}
+            </p>
+
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+              }}
+            >
+              <button
+                type="button"
+                autoFocus
+                className="admin-primary-button"
+                onClick={() => setUnassignWarning(null)}
+              >
+                Close
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   )
 }
