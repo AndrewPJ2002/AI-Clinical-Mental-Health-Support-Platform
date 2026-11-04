@@ -11,6 +11,7 @@ from app.therapist.service import (
     get_assigned_patients,
     get_therapist_notifications,
     mark_notification_reviewed,
+    mark_red_flag_event_reviewed,
 )
 
 
@@ -113,6 +114,39 @@ def review_notification(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Notification not found.",
+        )
+
+    return result
+
+
+@router.patch("/red-flags/{red_flag_event_id}/review")
+def review_red_flag_event(
+    red_flag_event_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_therapist),
+):
+    """
+    Review a red-flag event, including historical events
+    that do not have an associated notification.
+    """
+
+    try:
+        result = mark_red_flag_event_reviewed(
+            db,
+            current_user.id,
+            red_flag_event_id,
+        )
+    except SQLAlchemyError as exc:
+        db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="The red-flag event could not be updated.",
+        ) from exc
+
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Red-flag event not found or access denied.",
         )
 
     return result

@@ -270,6 +270,50 @@ def get_therapist_notifications(
     return results
 
 
+def mark_red_flag_event_reviewed(
+    db: Session,
+    therapist_id: int,
+    red_flag_event_id: int,
+) -> dict | None:
+    red_flag_event = (
+        db.query(RedFlagEvent)
+        .filter(RedFlagEvent.id == red_flag_event_id)
+        .first()
+    )
+
+    if red_flag_event is None:
+        return None
+
+    if not therapist_has_patient(
+        db,
+        therapist_id,
+        red_flag_event.patient_id,
+    ):
+        return None
+
+    red_flag_event.status = "reviewed"
+
+    notifications = (
+        db.query(Notification)
+        .filter(
+            Notification.red_flag_event_id == red_flag_event.id,
+            Notification.recipient_user_id == therapist_id,
+        )
+        .all()
+    )
+
+    for notification in notifications:
+        notification.is_read = True
+
+    db.commit()
+
+    return {
+        "red_flag_event_id": red_flag_event.id,
+        "status": red_flag_event.status,
+        "notifications_updated": len(notifications),
+    }
+
+
 def mark_notification_reviewed(
     db: Session,
     therapist_id: int,
