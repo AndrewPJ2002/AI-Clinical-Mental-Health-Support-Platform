@@ -412,10 +412,10 @@ function TherapistDashboard({ onLogout }) {
     }
   }
 
-  async function handleMarkReviewed(notification) {
+  async function handleMarkReviewed(flag) {
     if (
-      !notification ||
-      notification.is_read ||
+      !flag ||
+      flag.isReviewed ||
       reviewingNotificationId !== null
     ) {
       return
@@ -428,12 +428,12 @@ function TherapistDashboard({ onLogout }) {
       return
     }
 
-    setReviewingNotificationId(String(notification.id))
+    setReviewingNotificationId(String(flag.id))
     setError('')
 
     try {
       const response = await fetch(
-        `${API_URL}/therapist/notifications/${notification.id}/review`,
+        `${API_URL}/therapist/red-flags/${flag.id}/review`,
         {
           method: 'PATCH',
           headers: {
@@ -452,7 +452,7 @@ function TherapistDashboard({ onLogout }) {
 
       setNotifications((current) =>
         current.map((item) =>
-          String(item.id) === String(notification.id)
+          String(item.red_flag_event_id) === String(flag.id)
             ? {
                 ...item,
                 is_read: true,
@@ -467,33 +467,28 @@ function TherapistDashboard({ onLogout }) {
 
         return {
           ...current,
-          red_flags: (current.red_flags || []).map((flag) =>
-            String(flag.id) ===
-            String(notification.red_flag_event_id)
+          red_flags: (current.red_flags || []).map((item) =>
+            String(item.id) === String(flag.id)
               ? {
-                  ...flag,
+                  ...item,
                   status: 'reviewed',
                 }
-              : flag,
+              : item,
           ),
         }
       })
 
-      const remainingForConversation = notifications.some(
-        (item) =>
-          String(item.id) !== String(notification.id) &&
-          !item.is_read &&
-          String(item.patient_id) ===
-            String(notification.patient_id) &&
-          String(item.conversation_id) ===
-            String(notification.conversation_id) &&
-          item.red_flag_event_id != null,
-      )
+      const remainingForConversation =
+        selectedConversationAlertHistory.some(
+          (item) =>
+            String(item.id) !== String(flag.id) &&
+            !item.isReviewed,
+        )
 
       setConversations((current) =>
         current.map((conversation) =>
           String(conversation.id) ===
-          String(notification.conversation_id)
+          String(selectedConversation?.id)
             ? {
                 ...conversation,
                 flag_status: remainingForConversation
@@ -1268,14 +1263,10 @@ function TherapistDashboard({ onLogout }) {
 
                 <div className="therapist-history-event-list">
                   {selectedConversationAlertHistory.map((flag) => {
-                    const canReview =
-                      !flag.isReviewed &&
-                      flag.notification &&
-                      !flag.notification.is_read
+                    const canReview = !flag.isReviewed
 
                     const isSaving =
-                      reviewingNotificationId ===
-                      String(flag.notification?.id)
+                      reviewingNotificationId === String(flag.id)
 
                     return (
                       <article
@@ -1350,9 +1341,7 @@ function TherapistDashboard({ onLogout }) {
                                 reviewingNotificationId !== null
                               }
                               onClick={() =>
-                                handleMarkReviewed(
-                                  flag.notification,
-                                )
+                                handleMarkReviewed(flag)
                               }
                             >
                               {isSaving
@@ -1362,13 +1351,7 @@ function TherapistDashboard({ onLogout }) {
                           </div>
                         )}
 
-                        {!flag.isReviewed &&
-                          !flag.notification && (
-                            <p className="therapist-history-unavailable">
-                              Review action unavailable for
-                              this historical event.
-                            </p>
-                          )}
+
                       </article>
                     )
                   })}
