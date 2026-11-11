@@ -4,7 +4,7 @@ import './ChatScreen.css'
 import './HistoryPanel.css'
 import HistoryPanel from './HistoryPanel'
 
-const API_URL = 'http://127.0.0.1:8000'
+import API_URL from '../config'
 
 function ChatScreen({ onLogout }) {
   const [message, setMessage] = useState('')
