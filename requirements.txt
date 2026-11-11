@@ -1,3 +1,5 @@
+--index-url https://download.pytorch.org/whl/cpu
+--extra-index-url https://pypi.org/simple
 annotated-doc==0.0.5
 annotated-types==0.8.0
 anyio==4.15.1
@@ -36,3 +38,4 @@ tzdata==2026.5
 uvicorn==0.54.0
 pgvector
 sentence-transformers
+torch==2.11.0
