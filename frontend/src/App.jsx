@@ -7,7 +7,7 @@ import TherapistDashboard from './components/TherapistDashboard'
 import AdminDashboard from './components/AdminDashboard'
 
 
-const API_URL = 'https://mental-health-backend-peach.vercel.app/'
+const API_URL = 'http://127.0.0.1:8000'
 
 
 function AuthenticatedHeader({ onLogout }) {
