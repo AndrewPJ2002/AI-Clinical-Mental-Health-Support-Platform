@@ -1,7 +1,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import './AdminDashboard.css'
-
+//import { useNavigate } from 'react-router-dom'
 const API_URL = 'http://127.0.0.1:8000'
 
 function AdminDashboard({ onLogout }) {
@@ -12,6 +12,11 @@ function AdminDashboard({ onLogout }) {
   const [safetyActivity, setSafetyActivity] = useState([])
   const [systemMetadata, setSystemMetadata] = useState(null)
 
+  const [retrievalQuery, setRetrievalQuery] = useState('')
+  const [retrievalResults, setRetrievalResults] = useState([])
+  const [retrievalContext, setRetrievalContext] = useState('')
+  const [retrievalLoading, setRetrievalLoading] = useState(false)
+
   const [selectedTherapists, setSelectedTherapists] = useState({})
   const [activeTab, setActiveTab] = useState('dashboard')
   const [userRoleFilter, setUserRoleFilter] = useState('all')
@@ -20,11 +25,16 @@ function AdminDashboard({ onLogout }) {
   const [loading, setLoading] = useState(true)
   const [savingPatientId, setSavingPatientId] = useState(null)
   const [error, setError] = useState('')
+  const [showKnowledgeSources, setShowKnowledgeSources] = useState(false)
+  const [selectedSource, setSelectedSource] = useState('')
+  const [documentContent, setDocumentContent] = useState('')
+  const [savingKnowledge, setSavingKnowledge] = useState(false)
+  const [knowledgeSaving, setKnowledgeSaving] = useState(false)
 
   useEffect(() => {
     loadAdminData()
   }, [])
-
+  //navigate(`/knowledge-base/${source}`)
   async function apiRequest(path, options = {}) {
     const token = sessionStorage.getItem('access_token')
 
@@ -110,6 +120,51 @@ function AdminDashboard({ onLogout }) {
     }
   }
 
+  async function loadKnowledgeDocument(filename) {
+    try {
+      const data = await apiRequest(
+        `/knowledge-base/document/${filename}`
+      )
+
+      setSelectedSource(filename)
+      setDocumentContent(data.content)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  async function runRetrievalTest() {
+    if (!retrievalQuery.trim()) {
+      return
+    }
+
+    setRetrievalLoading(true)
+
+    try {
+      const data = await apiRequest(
+        '/knowledge-base/test',
+        {
+         method: 'POST',
+          body: JSON.stringify({
+            query: retrievalQuery,
+          }),
+        }
+      )
+
+      setRetrievalResults(
+        data.documents || []
+      )
+
+      setRetrievalContext(
+        data.context || ''
+      )
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setRetrievalLoading(false)
+    }
+  } 
+
   async function refreshAssignmentsAndSummary() {
     const [summaryData, assignmentsData] = await Promise.all([
       apiRequest('/admin/summary'),
@@ -177,6 +232,66 @@ function AdminDashboard({ onLogout }) {
       setError(err.message)
     } finally {
       setSavingPatientId(null)
+    }
+  }
+
+  async function loadKnowledgeDocument(filename) {
+    try {
+      const data = await apiRequest(
+        `/knowledge-base/document/${filename}`
+      )
+
+      setSelectedSource(filename)
+      setDocumentContent(data.content)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  async function saveKnowledgeDocument() {
+    if (!selectedSource) return
+    setSavingKnowledge(true)
+    try {
+      await apiRequest(
+        `/knowledge-base/document/${selectedSource}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            content: documentContent,
+          }),
+        }
+      )
+      await loadAdminData()
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSavingKnowledge(false)
+    }
+  }
+
+  async function saveKnowledgeDocument() {
+    if (!selectedSource) {
+      return
+    }
+
+    setKnowledgeSaving(true)
+
+    try {
+      await apiRequest(
+        `/knowledge-base/document/${selectedSource}`,
+        {
+          method: 'PUT',
+          body: JSON.stringify({
+            content: documentContent,
+          }),
+        }
+      )
+
+      alert('Knowledge base updated successfully.')
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setKnowledgeSaving(false)
     }
   }
 
@@ -938,7 +1053,15 @@ function AdminDashboard({ onLogout }) {
                     </strong>
                   </div>
 
-                  <div className="admin-config-row">
+                  <button
+                    type="button"
+                    className="admin-config-row admin-dropdown-row"
+                    onClick={() =>
+                      setShowKnowledgeSources(
+                        !showKnowledgeSources
+                      )
+                    }
+                  >
                     <span>
                       Source Documents
                     </span>
@@ -946,8 +1069,32 @@ function AdminDashboard({ onLogout }) {
                     <strong>
                       {systemMetadata?.knowledge_base
                         ?.source_document_count ?? 0}
+
+                      {' '}
+                      {showKnowledgeSources
+                        ? '▲'
+                        : '▼'}
                     </strong>
-                  </div>
+                  </button>
+                  {showKnowledgeSources && (
+                    <div className="admin-knowledge-sources-list">
+                      {(
+                        systemMetadata?.knowledge_base
+                          ?.source_documents || []
+                      ).map((source) => (
+                        <button
+                          type="button"
+                          className="admin-knowledge-source-item"
+                          key={source}
+                          onClick={() =>
+                            loadKnowledgeDocument(source)
+                          }
+                        >
+                          {sourceLabel(source)}
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
                   <div className="admin-config-row">
                     <span>
@@ -961,7 +1108,7 @@ function AdminDashboard({ onLogout }) {
                   </div>
                 </div>
 
-                <div className="admin-knowledge-sources">
+                {/*<div className="admin-knowledge-sources">
                   <span className="admin-system-label">
                     Knowledge Sources
                   </span>
@@ -971,15 +1118,49 @@ function AdminDashboard({ onLogout }) {
                       systemMetadata?.knowledge_base
                         ?.source_documents || []
                     ).map((source) => (
-                      <div
+                      <button
+                        type="button"
                         className="admin-knowledge-source-item"
                         key={source}
+                        onClick={() =>
+                          loadKnowledgeDocument(source)
+                        }
                       >
                         {sourceLabel(source)}
-                      </div>
+                      </button>
                     ))}
-                  </div>
-                </div>
+                  </div>*/}
+                  {selectedSource && (
+                    <div className="admin-kb-editor">
+
+                      <h4>
+                        Editing {sourceLabel(selectedSource)}
+                      </h4>
+
+                      <textarea
+                        value={documentContent}
+                        onChange={(event) =>
+                          setDocumentContent(
+                            event.target.value
+                          )
+                        }
+                        rows={18}
+                        className="admin-kb-textarea"
+                      />
+
+                      <button
+                        type="button"
+                        className="admin-primary-button"
+                        onClick={saveKnowledgeDocument}
+                        disabled={savingKnowledge}
+                      >
+                        {savingKnowledge
+                          ? 'Saving...'
+                          : 'Save Knowledge Base'}
+                      </button>
+                    </div>
+                  )}
+                {/* </div> */}
               </div>
 
               <div className="admin-system-section">

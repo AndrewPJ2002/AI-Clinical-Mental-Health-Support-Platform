@@ -1467,3 +1467,92 @@
 .admin-tabs {
   overflow: visible;
 }
+
+/* Making the Knowledge Base interactive rather than read-only*/
+/*.admin-rag-tester {
+  margin-top: 2rem;
+}
+
+.admin-rag-input {
+  width: 100%;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  border: 1px solid #d8d2ca;
+}
+
+.admin-rag-results {
+  margin-top: 1rem;
+}
+
+.admin-rag-results ul {
+  padding-left: 1.5rem;
+}
+
+.admin-rag-context {
+  margin-top: 1rem;
+}
+
+.admin-rag-context pre {
+  white-space: pre-wrap;
+  background: #f7f5f2;
+  padding: 1rem;
+  border-radius: 8px;
+  max-height: 300px;
+  overflow-y: auto;
+}*/
+
+.admin-kb-editor {
+  margin-top: 2rem;
+}
+
+.admin-kb-textarea {
+  width: 100%;
+  min-height: 400px;
+  padding: 1rem;
+  resize: vertical;
+}
+
+.admin-kb-actions {
+  margin-top: 1rem;
+}
+
+.admin-knowledge-source-item {
+  cursor: pointer;
+}
+
+.admin-dropdown-row {
+  width: 100%;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+
+.admin-source-dropdown {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.admin-source-button {
+  text-align: left;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #ded6ce;
+  cursor: pointer;
+}
+
+.admin-source-button:hover {
+  background: #f5f1ed;
+}
+
+.admin-kb-editor {
+  margin-top: 24px;
+}
+
+.admin-kb-textarea {
+  width: 100%;
+  min-height: 400px;
+  resize: vertical;
+}
