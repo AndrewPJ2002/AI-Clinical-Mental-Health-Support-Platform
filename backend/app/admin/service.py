@@ -1,8 +1,14 @@
-from sqlalchemy import func, text
+from sqlalchemy import case, func, text
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.chat.llm import (
+    FALLBACK_MODEL,
+    MODEL_RATES_USD_PER_MILLION,
+    ensure_usage_table,
+)
 from app.db_tables import (
+    AIModelUsage,
     RedFlagEvent,
     TherapistPatientAssignment,
     User,
@@ -272,6 +278,29 @@ def get_admin_safety_activity(
 def get_admin_system_metadata(
     db: Session,
 ) -> dict:
+    ensure_usage_table()
+    fallback_rates = MODEL_RATES_USD_PER_MILLION[FALLBACK_MODEL]
+    fallback_cost = (
+        (
+            AIModelUsage.input_tokens - AIModelUsage.cached_input_tokens
+        ) * fallback_rates["input"]
+        + AIModelUsage.cached_input_tokens * fallback_rates["cached_input"]
+        + AIModelUsage.output_tokens * fallback_rates["output"]
+    ) / 1_000_000
+    usage_totals = db.query(
+        func.coalesce(func.sum(AIModelUsage.input_tokens), 0),
+        func.coalesce(func.sum(AIModelUsage.output_tokens), 0),
+        func.coalesce(func.sum(case(
+            (AIModelUsage.cost_usd.is_(None), fallback_cost),
+            else_=AIModelUsage.cost_usd,
+        )), 0),
+        func.count(AIModelUsage.id),
+    ).one()
+    fallback_models = [
+        model
+        for (model,) in db.query(AIModelUsage.model).distinct().all()
+        if model not in MODEL_RATES_USD_PER_MILLION
+    ]
     chunk_count = (
         db.execute(
             text(
@@ -341,6 +370,20 @@ def get_admin_system_metadata(
                 if settings.openapi_model
                 else "Configured"
             ),
+            "ai_usage": {
+                "input_tokens": int(usage_totals[0] or 0),
+                "output_tokens": int(usage_totals[1] or 0),
+                "total_tokens": int(usage_totals[0] or 0)
+                + int(usage_totals[1] or 0),
+                "cost_usd": (
+                    float(usage_totals[2])
+                    if usage_totals[2] is not None
+                    else 0.0
+                ),
+                "request_count": int(usage_totals[3] or 0),
+                "cost_uses_fallback_rates": bool(fallback_models),
+                "fallback_model": FALLBACK_MODEL if fallback_models else None,
+            },
         },
     }
 

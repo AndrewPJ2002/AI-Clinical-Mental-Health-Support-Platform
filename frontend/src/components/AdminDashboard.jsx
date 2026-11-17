@@ -1078,6 +1078,31 @@ function AdminDashboard({ onLogout }) {
                         'Configured'}
                     </strong>
                   </div>
+
+                  <div className="admin-config-row">
+                    <span>
+                      Tokens Used
+                    </span>
+
+                    <strong>
+                      {(systemMetadata?.system?.ai_usage?.total_tokens ?? 0).toLocaleString()}
+                      {' '}({(systemMetadata?.system?.ai_usage?.input_tokens ?? 0).toLocaleString()} input /{' '}
+                      {(systemMetadata?.system?.ai_usage?.output_tokens ?? 0).toLocaleString()} output)
+                    </strong>
+                  </div>
+
+                  <div className="admin-config-row">
+                    <span>
+                      Estimated API Cost (USD)
+                    </span>
+
+                    <strong>
+                      `${(systemMetadata?.system?.ai_usage?.cost_usd ?? 0).toFixed(6)}`
+                      {systemMetadata?.system?.ai_usage?.cost_uses_fallback_rates
+                        ? ` (estimated using ${systemMetadata.system.ai_usage.fallback_model} rates)`
+                        : ''}
+                    </strong>
+                  </div>
                 </div>
               </div>
             </section>

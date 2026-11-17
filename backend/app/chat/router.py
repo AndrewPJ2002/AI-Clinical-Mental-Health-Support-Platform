@@ -146,6 +146,7 @@ def send_message(
                 history,
                 content,
                 knowledge_context,
+                db=db,
             )
 
         saved_patient_message = save_chat_turn(

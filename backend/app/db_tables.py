@@ -5,6 +5,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Float,
     ForeignKey,
     String,
     Text,
@@ -224,6 +225,22 @@ class Notification(Base):
         nullable=False,
         server_default="false",
     )
+    created_at = Column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=func.now(),
+    )
+
+
+class AIModelUsage(Base):
+    __tablename__ = "ai_model_usage"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    model = Column(String, nullable=False)
+    input_tokens = Column(BigInteger, nullable=False)
+    output_tokens = Column(BigInteger, nullable=False)
+    cached_input_tokens = Column(BigInteger, nullable=False, server_default="0")
+    cost_usd = Column(Float, nullable=True)
     created_at = Column(
         DateTime(timezone=True),
         nullable=False,
