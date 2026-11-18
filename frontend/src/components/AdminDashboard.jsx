@@ -21,7 +21,7 @@ function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard')
   const [userRoleFilter, setUserRoleFilter] = useState('all')
   const [showBackToDashboard, setShowBackToDashboard] = useState(false)
-
+  const [originalDocumentContent, setOriginalDocumentContent] = useState('')
   const [loading, setLoading] = useState(true)
   const [savingPatientId, setSavingPatientId] = useState(null)
   const [error, setError] = useState('')
@@ -248,7 +248,7 @@ function AdminDashboard({ onLogout }) {
     }
   }
 
-  async function saveKnowledgeDocument() {
+  /*async function saveKnowledgeDocument() {
     if (!selectedSource) return
     setSavingKnowledge(true)
     try {
@@ -267,7 +267,7 @@ function AdminDashboard({ onLogout }) {
     } finally {
       setSavingKnowledge(false)
     }
-  }
+  }*/
 
   async function saveKnowledgeDocument() {
     if (!selectedSource) {
@@ -288,6 +288,9 @@ function AdminDashboard({ onLogout }) {
       )
 
       alert('Knowledge base updated successfully.')
+      setSelectedSource('')
+      setDocumentContent('')
+      setOriginalDocumentContent('')
     } catch (err) {
       setError(err.message)
     } finally {
@@ -310,10 +313,35 @@ function AdminDashboard({ onLogout }) {
     setActiveTab(tab)
   }
 
+  function cancelKnowledgeEdit() {
+    setDocumentContent(originalDocumentContent)
+    setSelectedSource('')
+    setOriginalDocumentContent('')
+  }
+
   function openUsers(role, fromDashboard = false) {
     setUserRoleFilter(role)
     setShowBackToDashboard(fromDashboard)
     setActiveTab('users')
+  }
+
+  function cancelKnowledgeEdit() {
+
+    const hasChanges =
+      documentContent !== originalDocumentContent
+
+    if (
+      hasChanges &&
+      !window.confirm(
+        'Discard your unsaved changes?'
+      )
+    ) {
+      return
+    }
+
+    setSelectedSource('')
+    setDocumentContent('')
+    setOriginalDocumentContent('')
   }
 
   function handleBackToDashboard() {
@@ -1158,6 +1186,14 @@ function AdminDashboard({ onLogout }) {
                           ? 'Saving...'
                           : 'Save Knowledge Base'}
                       </button>
+                    <button
+                      type="button"
+                      className="admin-secondary-button"
+                      onClick={cancelKnowledgeEdit}
+                      disabled={knowledgeSaving}
+                    >
+                      Cancel
+                    </button>
                     </div>
                   )}
                 {/* </div> */}
