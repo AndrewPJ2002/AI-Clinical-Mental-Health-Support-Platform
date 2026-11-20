@@ -1,15 +1,20 @@
 
 from sqlalchemy.orm import Session
 from app.db_tables import KnowledgeChunk
-from sentence_transformers import SentenceTransformer
+from functools import lru_cache
 
 # This model produces 384-dimensional embeddings.
 # Keep this model consistent with the embeddings already stored in Supabase.
-embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
+@lru_cache(maxsize=1)
+def _get_embedding_model():
+    # Import and load this large model only when retrieval is first used.
+    from sentence_transformers import SentenceTransformer
+
+    return SentenceTransformer("all-MiniLM-L6-v2")
 
 
 def create_embedding(text: str) -> list[float]:
-    embedding = embedding_model.encode(
+    embedding = _get_embedding_model().encode(
         text,
         normalize_embeddings=True
     )
