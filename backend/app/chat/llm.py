@@ -4,9 +4,9 @@ from openai import OpenAI
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from app.config import settings
 from app.database import engine
 from app.db_tables import AIModelUsage
+from app.ai_settings import get_ai_runtime_settings
 
 
 # OpenAI standard text-token rates per million tokens. Keep unknown models
@@ -32,7 +32,7 @@ def ensure_usage_table() -> None:
         """))
 
 
-def _record_usage(db: Session, response) -> None:
+def _record_usage(db: Session, response, model: str) -> None:
     usage = response.usage
     if usage is None:
         return
@@ -45,7 +45,7 @@ def _record_usage(db: Session, response) -> None:
         int(getattr(details, "cached_tokens", 0) or 0),
     )
     rates = MODEL_RATES_USD_PER_MILLION.get(
-        settings.openapi_model,
+        model,
         MODEL_RATES_USD_PER_MILLION[FALLBACK_MODEL],
     )
     cost = (
@@ -56,7 +56,7 @@ def _record_usage(db: Session, response) -> None:
 
     ensure_usage_table()
     db.add(AIModelUsage(
-        model=settings.openapi_model,
+        model=model,
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         cached_input_tokens=cached_tokens,
@@ -122,10 +122,16 @@ def generate_reply(
 ) -> str:
     """Generate an assistant reply using conversation history and retrieved context."""
 
-    client = OpenAI(api_key=settings.open_api_key)
+    ai_settings = get_ai_runtime_settings(db)
+    if not ai_settings["is_enabled"]:
+        raise RuntimeError("AI responses are disabled by an administrator.")
+    if not ai_settings["api_key"]:
+        raise RuntimeError("The AI API key is not configured.")
+
+    client = OpenAI(api_key=ai_settings["api_key"])
 
     response = client.chat.completions.create(
-        model=settings.openapi_model,
+        model=ai_settings["model"],
         messages=build_prompt(
             conversation_history,
             user_message,
@@ -134,7 +140,7 @@ def generate_reply(
     )
 
     if db is not None:
-        _record_usage(db, response)
+        _record_usage(db, response, ai_settings["model"])
 
     reply = response.choices[0].message.content
 

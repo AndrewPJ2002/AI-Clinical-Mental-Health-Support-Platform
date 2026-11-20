@@ -166,6 +166,20 @@ class RedFlagDefinition(Base):
     )
 
 
+class ModerationCategorySetting(Base):
+    __tablename__ = "moderation_category_settings"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=True)
+    category = Column(String(100), nullable=False, unique=True)
+    label = Column(String(150), nullable=False)
+    severity = Column(String(20), nullable=False, server_default="medium")
+    is_enabled = Column(Boolean, nullable=False, server_default="true")
+    updated_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+
 class RedFlagEvent(Base):
     __tablename__ = "red_flag_events"
 
@@ -245,4 +259,18 @@ class AIModelUsage(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=func.now(),
+    )
+
+
+class AIProviderSettings(Base):
+    __tablename__ = "ai_provider_settings"
+
+    id = Column(BigInteger, primary_key=True, autoincrement=False)
+    provider = Column(String(50), nullable=False, server_default="openai")
+    model = Column(String(150), nullable=False)
+    is_enabled = Column(Boolean, nullable=False, server_default="true")
+    encrypted_api_key = Column(Text, nullable=True)
+    updated_at = Column(
+        DateTime(timezone=True), nullable=False, server_default=func.now(),
+        onupdate=func.now(),
     )

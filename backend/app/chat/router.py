@@ -131,7 +131,7 @@ def send_message(
         )
 
     try:
-        safety_result = risk_response(content)
+        safety_result = risk_response(content, db)
 
         if safety_result["is_crisis"]:
             assistant_reply = safety_result["response"]
@@ -163,6 +163,7 @@ def send_message(
                 conversation_id=chat_id,
                 message_id=saved_patient_message.id,
                 severity=safety_result["risk_lvl"],
+                matched_categories=safety_result.get("matched_categories", []),
             )
 
 

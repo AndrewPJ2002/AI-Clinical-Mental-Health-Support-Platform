@@ -16,7 +16,8 @@ class Settings(BaseSettings):
     jwt_secret: str
     jwt_algorithm: str = "HS256"
     access_token_expire: int = 30
-    open_api_key: str = Field(validation_alias="OPEN_API_KEY")
+    open_api_key: str = Field(default="", validation_alias="OPEN_API_KEY")
     openapi_model: str = Field(default="", validation_alias="OPENAPI_MODEL")
+    ai_settings_encryption_key: str = Field(default="", validation_alias="AI_SETTINGS_ENCRYPTION_KEY")
 
 settings = Settings()

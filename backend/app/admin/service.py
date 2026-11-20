@@ -2,6 +2,7 @@ from sqlalchemy import case, func, text
 from sqlalchemy.orm import Session
 
 from app.config import settings
+from app.ai_settings import get_ai_runtime_settings
 from app.chat.llm import (
     FALLBACK_MODEL,
     MODEL_RATES_USD_PER_MILLION,
@@ -9,6 +10,7 @@ from app.chat.llm import (
 )
 from app.db_tables import (
     AIModelUsage,
+    RedFlagDefinition,
     RedFlagEvent,
     TherapistPatientAssignment,
     User,
@@ -207,6 +209,11 @@ def get_admin_safety_activity(
     results = []
 
     for event in events:
+        definition = (
+            db.query(RedFlagDefinition)
+            .filter(RedFlagDefinition.id == event.red_flag_definition_id)
+            .first()
+        )
         patient = (
             db.query(User)
             .filter(
@@ -252,6 +259,7 @@ def get_admin_safety_activity(
                     else None
                 ),
                 "severity": event.severity,
+                "rule_name": definition.name if definition is not None else None,
                 "status": event.status,
                 "detected_at": event.detected_at,
                 "therapist_id": (
@@ -278,6 +286,7 @@ def get_admin_safety_activity(
 def get_admin_system_metadata(
     db: Session,
 ) -> dict:
+    ai_settings = get_ai_runtime_settings(db)
     ensure_usage_table()
     fallback_rates = MODEL_RATES_USD_PER_MILLION[FALLBACK_MODEL]
     fallback_cost = (
@@ -366,10 +375,9 @@ def get_admin_system_metadata(
                 settings.access_token_expire
             ),
             "ai_model": (
-                settings.openapi_model
-                if settings.openapi_model
-                else "Configured"
+                ai_settings["model"]
             ),
+            "ai_enabled": ai_settings["is_enabled"],
             "ai_usage": {
                 "input_tokens": int(usage_totals[0] or 0),
                 "output_tokens": int(usage_totals[1] or 0),

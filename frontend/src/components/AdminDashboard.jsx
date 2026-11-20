@@ -11,6 +11,20 @@ function AdminDashboard({ onLogout }) {
   const [assignments, setAssignments] = useState([])
   const [safetyActivity, setSafetyActivity] = useState([])
   const [systemMetadata, setSystemMetadata] = useState(null)
+  const [moderationRules, setModerationRules] = useState([])
+  const [savingRule, setSavingRule] = useState(null)
+  const [aiSettings, setAiSettings] = useState({
+    model: 'gpt-6-luna',
+    is_enabled: true,
+    api_key_configured: false,
+    api_key_source: 'environment',
+    api_key_editable: false,
+  })
+  const [aiModel, setAiModel] = useState('gpt-6-luna')
+  const [aiEnabled, setAiEnabled] = useState(true)
+  const [aiApiKey, setAiApiKey] = useState('')
+  const [clearAiApiKey, setClearAiApiKey] = useState(false)
+  const [savingAiSettings, setSavingAiSettings] = useState(false)
 
   const [selectedTherapists, setSelectedTherapists] = useState({})
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -79,6 +93,7 @@ function AdminDashboard({ onLogout }) {
         assignmentsData,
         safetyData,
         systemData,
+        rulesData,
       ] = await Promise.all([
         apiRequest('/admin/summary'),
         apiRequest('/admin/users'),
@@ -86,6 +101,7 @@ function AdminDashboard({ onLogout }) {
         apiRequest('/admin/assignments'),
         apiRequest('/admin/safety'),
         apiRequest('/admin/system'),
+        apiRequest('/admin/red-flag-rules'),
       ])
 
       setSummary(summaryData)
@@ -94,6 +110,24 @@ function AdminDashboard({ onLogout }) {
       setAssignments(assignmentsData.assignments || [])
       setSafetyActivity(safetyData.activity || [])
       setSystemMetadata(systemData)
+      setModerationRules(rulesData.rules || [])
+
+      try {
+        const aiData = await apiRequest('/admin/ai-settings')
+        setAiSettings(aiData)
+        setAiModel(aiData.model)
+        setAiEnabled(aiData.is_enabled)
+      } catch (err) {
+        const fallbackModel = systemData?.system?.ai_model || 'gpt-6-luna'
+        setAiModel(fallbackModel)
+        setAiEnabled(systemData?.system?.ai_enabled ?? true)
+        setAiSettings((current) => ({
+          ...current,
+          model: fallbackModel,
+          is_enabled: systemData?.system?.ai_enabled ?? true,
+        }))
+        setError(err.message)
+      }
 
       const initialSelections = {}
 
@@ -177,6 +211,50 @@ function AdminDashboard({ onLogout }) {
       setError(err.message)
     } finally {
       setSavingPatientId(null)
+    }
+  }
+
+  async function handleSaveRule(rule) {
+    setSavingRule(rule.category)
+    setError('')
+    try {
+      const updated = await apiRequest(`/admin/red-flag-rules/${rule.category}`, {
+        method: 'PUT',
+        body: JSON.stringify({ severity: rule.severity, is_enabled: rule.is_enabled }),
+      })
+      setModerationRules((current) => current.map((item) =>
+        item.category === updated.category ? updated : item
+      ))
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSavingRule(null)
+    }
+  }
+
+  async function handleSaveAiSettings(event) {
+    event.preventDefault()
+    setSavingAiSettings(true)
+    setError('')
+    try {
+      const updated = await apiRequest('/admin/ai-settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          model: aiModel.trim(),
+          is_enabled: aiEnabled,
+          api_key: aiApiKey || null,
+          clear_api_key: clearAiApiKey,
+        }),
+      })
+      setAiSettings(updated)
+      setAiModel(updated.model)
+      setAiEnabled(updated.is_enabled)
+      setAiApiKey('')
+      setClearAiApiKey(false)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setSavingAiSettings(false)
     }
   }
 
@@ -388,6 +466,14 @@ function AdminDashboard({ onLogout }) {
               onClick={() => handleTopLevelTab('safety')}
             >
               Safety
+            </button>
+
+            <button
+              type="button"
+              className={`admin-tab ${activeTab === 'safety-rules' ? 'active' : ''}`}
+              onClick={() => handleTopLevelTab('safety-rules')}
+            >
+              Safety Rules
             </button>
 
             <button
@@ -840,6 +926,7 @@ function AdminDashboard({ onLogout }) {
                       <tr>
                         <th>Patient</th>
                         <th>Severity</th>
+                        <th>Category</th>
                         <th>Status</th>
                         <th>Detected</th>
                         <th>Assigned Therapist</th>
@@ -853,6 +940,8 @@ function AdminDashboard({ onLogout }) {
                             {event.patient_first_name}{' '}
                             {event.patient_last_name}
                           </td>
+
+                          <td>{event.rule_name || 'Safety screening'}</td>
 
                           <td>
                             <span
@@ -902,6 +991,41 @@ function AdminDashboard({ onLogout }) {
             </section>
           )}
 
+          {activeTab === 'safety-rules' && (
+            <section className="admin-content-section">
+              <div className="admin-section-heading">
+                <div>
+                  <h2>Red Flag Settings</h2>
+                  <p>Choose which returned categories contribute to risk level and set their severity. Medium and high results create safety activity and therapist notifications; low results do not. Category names are provided by your model provider.</p>
+                </div>
+              </div>
+              <div className="admin-table-wrapper">
+                <table className="admin-table">
+                  <thead><tr><th>Category</th><th>Enabled</th><th>Severity</th><th>Action</th></tr></thead>
+                  <tbody>
+                    {moderationRules.map((rule) => (
+                      <tr key={rule.category}>
+                        <td><strong>{rule.label}</strong><br /><small>{rule.category}</small></td>
+                        <td>
+                          <input aria-label={`Enable ${rule.label}`} type="checkbox" checked={rule.is_enabled}
+                            onChange={(event) => setModerationRules((current) => current.map((item) => item.category === rule.category ? { ...item, is_enabled: event.target.checked } : item))} />
+                        </td>
+                        <td>
+                          <select aria-label={`${rule.label} severity`} value={rule.severity}
+                            onChange={(event) => setModerationRules((current) => current.map((item) => item.category === rule.category ? { ...item, severity: event.target.value } : item))}>
+                            <option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option>
+                          </select>
+                        </td>
+                        <td><button type="button" className="admin-primary-button" disabled={savingRule === rule.category}
+                          onClick={() => handleSaveRule(rule)}>{savingRule === rule.category ? 'Saving…' : 'Save'}</button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
           {activeTab === 'system' && (
             <section className="admin-content-section">
               <div className="admin-section-heading">
@@ -915,9 +1039,7 @@ function AdminDashboard({ onLogout }) {
                   </p>
                 </div>
 
-                <span className="admin-system-label">
-                  Read Only
-                </span>
+                <span className="admin-system-label">AI Configuration Editable</span>
               </div>
 
               <div className="admin-system-section">
@@ -1074,9 +1196,19 @@ function AdminDashboard({ onLogout }) {
                     </span>
 
                     <strong>
-                      {systemMetadata?.system?.ai_model ||
+                      {aiSettings?.model || systemMetadata?.system?.ai_model ||
                         'Configured'}
                     </strong>
+                  </div>
+
+                  <div className="admin-config-row">
+                    <span>AI Responses</span>
+                    <strong>{aiSettings?.is_enabled ? 'Enabled' : 'Disabled'}</strong>
+                  </div>
+
+                  <div className="admin-config-row">
+                    <span>AI API Key</span>
+                    <strong>{aiSettings?.api_key_configured ? `Configured (${aiSettings.api_key_source})` : 'Not configured'}</strong>
                   </div>
 
                   <div className="admin-config-row">
@@ -1104,6 +1236,35 @@ function AdminDashboard({ onLogout }) {
                     </strong>
                   </div>
                 </div>
+
+                <form className="admin-ai-settings-form" onSubmit={handleSaveAiSettings}>
+                  <h3>Configure AI Provider</h3>
+                  <label className="admin-select-label">
+                        Model
+                        <input value={aiModel} onChange={(event) => setAiModel(event.target.value)} required maxLength={150} />
+                  </label>
+                  <label className="admin-ai-toggle">
+                        <input type="checkbox" checked={aiEnabled} onChange={(event) => setAiEnabled(event.target.checked)} />
+                        Enable AI responses
+                  </label>
+                  <label className="admin-select-label">
+                        Replace API key
+                        <input type="password" autoComplete="new-password" value={aiApiKey}
+                          onChange={(event) => { setAiApiKey(event.target.value); setClearAiApiKey(false) }}
+                          placeholder={aiSettings.api_key_configured ? 'Saved key is hidden; enter a new key to replace it' : 'Enter an AI API key'}
+                        />
+                  </label>
+                  {!aiSettings.api_key_editable && <p>Saving an API key requires AI_SETTINGS_ENCRYPTION_KEY to be configured in the backend secret store.</p>}
+                  {aiSettings.api_key_source === 'admin' && (
+                    <label className="admin-ai-toggle">
+                          <input type="checkbox" checked={clearAiApiKey} onChange={(event) => { setClearAiApiKey(event.target.checked); if (event.target.checked) setAiApiKey('') }} />
+                          Remove saved key and use the backend environment key
+                    </label>
+                  )}
+                  <button className="admin-primary-button" type="submit" disabled={savingAiSettings || !aiModel.trim() || Boolean(aiApiKey && clearAiApiKey)}>
+                        {savingAiSettings ? 'Saving...' : 'Save AI Settings'}
+                  </button>
+                </form>
               </div>
             </section>
           )}

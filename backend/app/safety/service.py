@@ -15,6 +15,7 @@ def record_red_flag_and_notify(
     conversation_id: int,
     message_id: int,
     severity: str,
+    matched_categories: list[str] | None = None,
 ) -> RedFlagEvent | None:
     """
     Persist a detected red flag and notify the patient's
@@ -26,9 +27,12 @@ def record_red_flag_and_notify(
     if severity == "low":
         return None
 
+    matched_categories = matched_categories or []
+
     definition = _get_or_create_definition(
         db,
         severity,
+        matched_categories,
     )
 
     red_flag_event = RedFlagEvent(
@@ -63,7 +67,8 @@ def record_red_flag_and_notify(
             red_flag_event_id=red_flag_event.id,
             type="red_flag",
             message=(
-                f"A {severity}-risk message was detected "
+                f"A {severity}-risk message was detected"
+                f"{(' (' + ', '.join(matched_categories) + ')') if matched_categories else ''} "
                 f"in conversation {conversation_id}."
             ),
             is_read=False,
@@ -83,15 +88,17 @@ def record_red_flag_and_notify(
 def _get_or_create_definition(
     db: Session,
     severity: str,
+    matched_categories: list[str],
 ) -> RedFlagDefinition:
     """
     Return the runtime safety-rule definition for this severity,
     creating it when it does not already exist.
     """
 
-    definition_name = (
-        f"{severity.capitalize()} Risk Safety Trigger"
-    )
+    category_text = ", ".join(sorted(matched_categories))
+    definition_name = f"{severity.capitalize()} Risk Safety Trigger"
+    if category_text:
+        definition_name += f" ({category_text})"
 
     definition = (
         db.query(RedFlagDefinition)
@@ -110,7 +117,10 @@ def _get_or_create_definition(
             "Message identified by the Anchored Support Services "
             "runtime safety screening process."
         ),
-        detection_pattern="runtime:safety.risk_response",
+        detection_pattern=(
+            f"openai_moderation:{category_text}"
+            if category_text else "runtime:safety.risk_response"
+        ),
         severity=severity,
         is_active=True,
     )

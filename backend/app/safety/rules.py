@@ -4,6 +4,9 @@ from openai import OpenAI
 from typing import Optional
 
 from app.config import settings
+from app.db_tables import ModerationCategorySetting
+from sqlalchemy.orm import Session
+from app.ai_settings import get_ai_runtime_settings
 
 
 # rule-based approach / binary
@@ -49,12 +52,60 @@ client = OpenAI(
     api_key=settings.open_api_key,
 )
 
+MODERATION_CATEGORIES = {
+    "harassment": ("Harassment", "medium"),
+    "harassment_threatening": ("Threatening harassment", "high"),
+    "hate": ("Hate", "medium"),
+    "hate_threatening": ("Threatening hate", "high"),
+    "illicit": ("Illicit content", "medium"),
+    "illicit_violent": ("Violent illicit content", "medium"),
+    "self_harm": ("Self-harm", "high"),
+    "self_harm_intent": ("Self-harm intent", "high"),
+    "self_harm_instructions": ("Self-harm instructions", "high"),
+    "sexual": ("Sexual content", "medium"),
+    "sexual_minors": ("Sexual content involving minors", "high"),
+    "violence": ("Violence", "medium"),
+    "violence_graphic": ("Graphic violence", "high"),
+}
+DEFAULT_ENABLED_CATEGORIES = {
+    "harassment", "illicit_violent", "self_harm", "self_harm_intent",
+    "self_harm_instructions", "violence",
+}
 
-def usr_message_check(
-    message: str,
-) -> Optional[str]:
+SEVERITY_ORDER = {"low": 1, "medium": 2, "high": 3}
+
+
+def get_moderation_category_settings(db: Session | None = None) -> list[dict]:
+    stored = {}
+    if db is not None:
+        stored = {
+            row.category: row
+            for row in db.query(ModerationCategorySetting).all()
+        }
+    return [
+        {
+            "category": category,
+            "label": label,
+            "severity": stored[category].severity if category in stored else default_severity,
+            "is_enabled": (
+                stored[category].is_enabled
+                if category in stored
+                else category in DEFAULT_ENABLED_CATEGORIES
+            ),
+        }
+        for category, (label, default_severity) in MODERATION_CATEGORIES.items()
+    ]
+
+
+def moderation_check(message: str, db: Session | None = None) -> dict:
     try:
-        result = client.moderations.create(
+        moderation_client = client
+        if db is not None:
+            ai_settings = get_ai_runtime_settings(db)
+            if not ai_settings["api_key"]:
+                raise RuntimeError("The AI API key is not configured.")
+            moderation_client = OpenAI(api_key=ai_settings["api_key"])
+        result = moderation_client.moderations.create(
             model="omni-moderation-latest",
             input=message,
         )
@@ -72,21 +123,26 @@ def usr_message_check(
     moderation = result.results[0]
     categories = moderation.categories
 
-    if (
-        categories.self_harm
-        or categories.self_harm_intent
-        or categories.self_harm_instructions
-    ):
-        return "high"
+    matches = [
+        setting
+        for setting in get_moderation_category_settings(db)
+        if setting["is_enabled"]
+        and bool(getattr(categories, setting["category"], False))
+    ]
+    severity = max(
+        (setting["severity"] for setting in matches),
+        key=lambda value: SEVERITY_ORDER[value],
+        default=None,
+    )
+    return {
+        "severity": severity,
+        "categories": [setting["category"] for setting in matches],
+    }
 
-    if (
-        categories.violence
-        or categories.illicit_violent
-        or categories.harassment
-    ):
-        return "medium"
 
-    return None
+def usr_message_check(message: str, db: Session | None = None) -> Optional[str]:
+    """Compatibility helper returning only the highest matched severity."""
+    return moderation_check(message, db)["severity"]
 
 
 # ___Hardcoded test cases___

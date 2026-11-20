@@ -1,4 +1,5 @@
-from .rules import contains_crisis, usr_message_check
+from .rules import contains_crisis, moderation_check
+from sqlalchemy.orm import Session
 
 
 CRISIS_RESPONSE = """
@@ -12,12 +13,15 @@ If possible, reach out to someone you trust and move to a safer place.
 """
 
 
-def risk_response(text: str) -> dict:
+def risk_response(text: str, db: Session | None = None) -> dict:
     is_crisis = contains_crisis(text)
     red_flag = None
+    matched_categories = []
 
     if not is_crisis:
-        red_flag = usr_message_check(text)
+        moderation_result = moderation_check(text, db)
+        red_flag = moderation_result["severity"]
+        matched_categories = moderation_result["categories"]
 
     is_high_risk = is_crisis or red_flag == "high"
 
@@ -31,6 +35,7 @@ def risk_response(text: str) -> dict:
             else "low"
         ),
         "source": "rules",
+        "matched_categories": matched_categories,
         "response": CRISIS_RESPONSE if is_high_risk else None,
     }
 
