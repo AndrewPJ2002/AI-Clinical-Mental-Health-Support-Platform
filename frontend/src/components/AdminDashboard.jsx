@@ -351,6 +351,28 @@ function AdminDashboard({ onLogout }) {
       setKnowledgeSaving(false)
     }
   }
+  async function deleteKnowledgeDocument() {
+    const confirmed = window.confirm(
+      `Are you sure you want to delete ${selectedSource}?`
+    )
+    if (!confirmed) {
+      return
+    }
+    try {
+      await apiRequest(
+        `/knowledge-base/document/${selectedCategory}/${selectedSource}`,
+        {
+          method: 'DELETE',
+        }
+      )
+      setSelectedSource('')
+      setSelectedCategory('')
+      setDocumentContent('')
+      await loadAdminData()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
 
   function handleTopLevelTab(tab) {
     setShowBackToDashboard(false)
@@ -456,7 +478,12 @@ function AdminDashboard({ onLogout }) {
 
     return users.filter((user) => user.role === userRoleFilter)
   }, [users, userRoleFilter])
-
+  const sourceDocumentCount =
+    Object.values(knowledgeDocuments).reduce(
+      (total, documents) =>
+        total + documents.length,
+      0
+    )
   if (loading) {
     return (
       <div className="admin-page">
@@ -1149,9 +1176,7 @@ function AdminDashboard({ onLogout }) {
                     </span>
 
                     <strong>
-                      {systemMetadata?.knowledge_base
-                        ?.source_document_count ?? 0}
-
+                      {sourceDocumentCount}
                       {' '}
                       {showKnowledgeSources
                         ? '▲'
@@ -1388,6 +1413,13 @@ function AdminDashboard({ onLogout }) {
                       disabled={knowledgeSaving}
                     >
                       Cancel
+                    </button>
+                    <button
+                      type="button"
+                      className="admin-secondary-button"
+                      onClick={deleteKnowledgeDocument}
+                    >
+                      Delete Document
                     </button>
                     </div>
                   )}

@@ -1632,3 +1632,18 @@
   display: flex;
   gap: 12px;
 }
+
+.admin-delete-button {
+  background-color: #c0392b;
+  color: white;
+  border: none;
+
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+.admin-delete-button:hover {
+  background-color: #a93226;
+}
