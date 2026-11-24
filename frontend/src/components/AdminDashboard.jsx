@@ -11,12 +11,12 @@ function AdminDashboard({ onLogout }) {
   const [assignments, setAssignments] = useState([])
   const [safetyActivity, setSafetyActivity] = useState([])
   const [systemMetadata, setSystemMetadata] = useState(null)
-
+  const [newDocumentName, setNewDocumentName] = useState('')
   const [retrievalQuery, setRetrievalQuery] = useState('')
   const [retrievalResults, setRetrievalResults] = useState([])
   const [retrievalContext, setRetrievalContext] = useState('')
   const [retrievalLoading, setRetrievalLoading] = useState(false)
-
+  const [newDocumentContent, setNewDocumentContent] = useState('')
   const [selectedTherapists, setSelectedTherapists] = useState({})
   const [activeTab, setActiveTab] = useState('dashboard')
   const [userRoleFilter, setUserRoleFilter] = useState('all')
@@ -30,7 +30,11 @@ function AdminDashboard({ onLogout }) {
   const [documentContent, setDocumentContent] = useState('')
   const [savingKnowledge, setSavingKnowledge] = useState(false)
   const [knowledgeSaving, setKnowledgeSaving] = useState(false)
-
+  const [selectedCategory,setSelectedCategory] = useState('')
+  const [selectedUploadFile, setSelectedUploadFile] = useState(null)
+  const [showAddDocumentModal, setShowAddDocumentModal] = useState(false)
+  const [newDocumentCategory, setNewDocumentCategory] = useState('')
+  const [knowledgeDocuments, setKnowledgeDocuments] = useState({})
   useEffect(() => {
     loadAdminData()
   }, [])
@@ -80,6 +84,14 @@ function AdminDashboard({ onLogout }) {
   async function loadAdminData() {
     setLoading(true)
     setError('')
+    const documentsData =
+      await apiRequest(
+        '/knowledge-base/documents'
+      )
+
+    setKnowledgeDocuments(
+      documentsData.documents || {}
+    )
 
     try {
       const [
@@ -120,7 +132,7 @@ function AdminDashboard({ onLogout }) {
     }
   }
 
-  async function loadKnowledgeDocument(filename) {
+  /*async function loadKnowledgeDocument(filename) {
     try {
       const data = await apiRequest(
         `/knowledge-base/document/${filename}`
@@ -131,7 +143,7 @@ function AdminDashboard({ onLogout }) {
     } catch (err) {
       setError(err.message)
     }
-  }
+  }*/
 
   async function runRetrievalTest() {
     if (!retrievalQuery.trim()) {
@@ -235,39 +247,81 @@ function AdminDashboard({ onLogout }) {
     }
   }
 
-  async function loadKnowledgeDocument(filename) {
+  async function loadKnowledgeDocument(category, filename) {
     try {
       const data = await apiRequest(
-        `/knowledge-base/document/${filename}`
+        `/knowledge-base/document/${category}/${filename}`
       )
-
+      setSelectedCategory(category)
       setSelectedSource(filename)
       setDocumentContent(data.content)
+      setOriginalDocumentContent(data.content)
     } catch (err) {
       setError(err.message)
     }
   }
 
-  /*async function saveKnowledgeDocument() {
-    if (!selectedSource) return
-    setSavingKnowledge(true)
+  /*async function createKnowledgeDocument() {
     try {
       await apiRequest(
-        `/knowledge-base/document/${selectedSource}`,
+        '/knowledge-base/document',
         {
-          method: 'PUT',
+          method: 'POST',
           body: JSON.stringify({
-            content: documentContent,
+            category:
+              newDocumentCategory,
+
+            filename:
+              newDocumentName,
+
+            content:
+              newDocumentContent,
           }),
         }
       )
+      setShowAddDocumentModal(false)
+      setNewDocumentCategory('')
+      setNewDocumentName('')
+      setNewDocumentContent('')
       await loadAdminData()
     } catch (err) {
-      setError(err.message)
-    } finally {
-      setSavingKnowledge(false)
+      setError(
+        err.message
+      )
     }
   }*/
+
+  async function uploadKnowledgeDocument() {
+    if (!selectedUploadFile) {
+      return
+    }
+
+    const formData = new FormData()
+
+    formData.append('file', selectedUploadFile)
+    formData.append('category', newDocumentCategory)
+
+    try {
+      const token = sessionStorage.getItem('access_token')
+      await fetch(
+        `${API_URL}/knowledge-base/upload`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization:
+              `Bearer ${token}`,
+          },
+          body: formData,
+        }
+      )
+      setShowAddDocumentModal(false)
+      await loadAdminData()
+    } catch (err) {
+      setError(
+        err.message
+      )
+    }
+  }
 
   async function saveKnowledgeDocument() {
     if (!selectedSource) {
@@ -278,7 +332,7 @@ function AdminDashboard({ onLogout }) {
 
     try {
       await apiRequest(
-        `/knowledge-base/document/${selectedSource}`,
+        `/knowledge-base/document/${selectedCategory}/${selectedSource}`,
         {
           method: 'PUT',
           body: JSON.stringify({
@@ -1104,11 +1158,12 @@ function AdminDashboard({ onLogout }) {
                         : '▼'}
                     </strong>
                   </button>
-                  {showKnowledgeSources && (
+                  {/*{showKnowledgeSources && (
                     <div className="admin-knowledge-sources-list">
                       {(
-                        systemMetadata?.knowledge_base
-                          ?.source_documents || []
+                        //systemMetadata?.knowledge_base
+                          //?.source_documents || []
+                        knowledgeDocuments || []
                       ).map((source) => (
                         <button
                           type="button"
@@ -1122,8 +1177,49 @@ function AdminDashboard({ onLogout }) {
                         </button>
                       ))}
                     </div>
+                  )}*/}
+                  {showKnowledgeSources && (
+                    <div className="admin-knowledge-sources-list">
+                      {Object.entries(
+                        knowledgeDocuments
+                      ).map(
+                        ([category, files]) => (
+                          <div
+                            key={category}
+                            className="admin-kb-category"
+                          >
+                            <h4>
+                              {sourceLabel(category)}
+                            </h4>
+                            {files.map((file) => (
+                              <button
+                                type="button"
+                                key={file}
+                                className="admin-knowledge-source-item"
+                                onClick={() =>
+                                  loadKnowledgeDocument(
+                                    category,
+                                    file
+                                  )
+                                }
+                              >
+                                {sourceLabel(file)}
+                              </button>
+                            ))}
+                          </div>
+                        )
+                      )}
+                    </div>
                   )}
-
+                  <button
+                    type="button"
+                    className="admin-primary-button"
+                    onClick={() =>
+                      setShowAddDocumentModal(true)
+                    }
+                  >
+                    Add Document
+                  </button>
                   <div className="admin-config-row">
                     <span>
                       Knowledge Chunks
@@ -1135,29 +1231,123 @@ function AdminDashboard({ onLogout }) {
                     </strong>
                   </div>
                 </div>
+                {showAddDocumentModal && (
+                  <div className="admin-modal-overlay">
 
-                {/*<div className="admin-knowledge-sources">
-                  <span className="admin-system-label">
-                    Knowledge Sources
-                  </span>
+                    <div className="admin-modal">
 
-                  <div className="admin-knowledge-source-grid">
-                    {(
-                      systemMetadata?.knowledge_base
-                        ?.source_documents || []
-                    ).map((source) => (
-                      <button
-                        type="button"
-                        className="admin-knowledge-source-item"
-                        key={source}
-                        onClick={() =>
-                          loadKnowledgeDocument(source)
-                        }
-                      >
-                        {sourceLabel(source)}
-                      </button>
-                    ))}
-                  </div>*/}
+                      <h3>
+                        Add Knowledge Base Document
+                      </h3>
+
+                      <label>
+                        Knowledge Area
+
+                        <select
+                          value={newDocumentCategory}
+                          onChange={(event) =>
+                            setNewDocumentCategory(
+                              event.target.value
+                            )
+                          }
+                        >
+                          <option value="">
+                            Select Area
+                          </option>
+
+                          <option value="stress">
+                            Stress Management
+                          </option>
+
+                          <option value="sleep">
+                            Sleep Wellness
+                          </option>
+
+                          <option value="anxiety">
+                            Anxiety & Coping
+                          </option>
+
+                          <option value="relationships">
+                            Healthy Relationships
+                          </option>
+
+                          <option value="crisis">
+                            Crisis Resources
+                          </option>
+
+                        </select>
+
+                      </label>
+
+                      <label>
+                        Document Name
+
+                        <input
+                          type="text"
+                          placeholder="burnout_recovery.md"
+                          value={newDocumentName}
+                          onChange={(event) =>
+                            setNewDocumentName(
+                              event.target.value
+                            )
+                          }
+                        />
+
+                      </label>
+
+                      <label>
+                        Content
+
+                        {/*<textarea
+                          rows={12}
+                          value={newDocumentContent}
+                          onChange={(event) =>
+                            setNewDocumentContent(
+                              event.target.value
+                            )
+                          }
+                        />*/}
+                        <input
+                          type="file"
+                          accept=".md,.txt,.pdf"
+                          onChange={(event) =>
+                            setSelectedUploadFile(
+                              event.target.files[0]
+                            )
+                          }
+                        />
+                      </label>
+
+                      <div className="admin-modal-actions">
+
+                        <button
+                          type="button"
+                          className="admin-primary-button"
+                          onClick={
+                            uploadKnowledgeDocument
+                          }
+                        >
+                          Add New Document
+                        </button>
+
+                        <button
+                          type="button"
+                          className="admin-secondary-button"
+                          onClick={() =>
+                            setShowAddDocumentModal(
+                              false
+                            )
+                          }
+                        >
+                          Cancel
+                        </button>
+
+                      </div>
+
+                    </div>
+
+                  </div>
+                )}
                   {selectedSource && (
                     <div className="admin-kb-editor">
 

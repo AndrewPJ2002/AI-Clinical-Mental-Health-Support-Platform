@@ -1556,3 +1556,38 @@
   min-height: 400px;
   resize: vertical;
 }
+
+.admin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.4);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 1000;
+}
+
+.admin-modal {
+  background: white;
+  padding: 24px;
+
+  width: 700px;
+  max-width: 90vw;
+
+  border-radius: 12px;
+}
+
+.admin-modal input,
+.admin-modal select,
+.admin-modal textarea {
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 16px;
+}
+
+.admin-modal-actions {
+  display: flex;
+  gap: 12px;
+}

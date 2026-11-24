@@ -1,22 +1,29 @@
+from fileinput import filename
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.orm import Session
-
+from app.knowledge_base import KNOWLEDGE_BASE_DIR
 from app.admin.router import require_admin
 from app.database import get_db
 from app.db_tables import KnowledgeChunk, User
 from app.load_kb import EXCLUDED_FILES, KB_DIR, chunk_text
 from app.retr_aug_gen import create_embedding
-
+from fastapi import UploadFile
+from fastapi import File
+from fastapi import Form
 
 router = APIRouter(
     prefix="/knowledge-base",
     tags=["Knowledge Base"],
 )
 
+class KnowledgeDocumentCreate(BaseModel):
+    category: str
+    filename: str
+    content: str
 
 class KnowledgeDocumentUpdate(BaseModel):
     content: str = Field(min_length=1, max_length=100_000)
@@ -48,8 +55,9 @@ def _get_document_path(filename: str) -> Path:
     return document_path
 
 
-@router.get("/document/{filename}")
+#@router.get("/document/{category}/{filename}")
 def get_knowledge_document(
+    category: str,
     filename: str,
     current_user: User = Depends(require_admin),
 ):
@@ -69,14 +77,26 @@ def get_knowledge_document(
     }
 
 
-@router.put("/document/{filename}")
+@router.put("/document/{category}/{filename}")
 def update_knowledge_document(
+    category: str,
     filename: str,
     payload: KnowledgeDocumentUpdate,
     db: Session = Depends(get_db),
     current_user: User = Depends(require_admin),
 ):
-    document_path = _get_document_path(filename)
+    if category is None:
+        document_path = (
+            KNOWLEDGE_BASE_DIR /
+            filename
+        )
+        document_path = _get_document_path(filename)
+    else:
+        document_path = (
+            KNOWLEDGE_BASE_DIR /
+            category /
+            filename
+        )
     if not payload.content.strip():
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -215,4 +235,129 @@ def test_knowledge_retrieval(
     return {
         "documents": documents,
         "context": "\n\n".join(context_sections),
+    }
+
+@router.post("/document")
+def create_document(payload: KnowledgeDocumentCreate,):
+    category_dir = (
+        KNOWLEDGE_BASE_DIR /
+        payload.category
+    )
+
+    category_dir.mkdir(
+        exist_ok=True
+    )
+
+    file_path = (
+        category_dir /
+        payload.filename
+    )
+
+    if file_path.exists():
+
+        raise HTTPException(
+            status_code=400,
+            detail="Document already exists."
+        )
+
+    file_path.write_text(
+        payload.content,
+        encoding="utf-8"
+    )
+
+    return {
+        "message":
+        "Document created."
+    }
+
+@router.delete("/document/{category}/{filename}")
+def delete_document(category: str,filename: str,):
+
+    file_path = (
+        KNOWLEDGE_BASE_DIR /
+        category /
+        filename
+    )
+
+    if not file_path.exists():
+
+        raise HTTPException(
+            status_code=404,
+            detail="Not found."
+        )
+
+    file_path.unlink()
+
+    return {
+        "message":
+        "Document deleted."
+    }
+
+@router.post("/upload")
+async def upload_document(category: str = Form(...), file: UploadFile = File(...),):
+    category_dir = (
+        KNOWLEDGE_BASE_DIR /
+        category
+    )
+    category_dir.mkdir(exist_ok=True)
+
+    destination = (
+        category_dir /
+        file.filename
+    )
+    contents = await file.read()
+    destination.write_bytes(contents)
+
+    return {
+        "message":
+        "Document uploaded."
+    }
+
+@router.get("/documents")
+def list_documents():
+    documents = {}
+    # Original KB files
+    root_files = [
+        file.name
+        for file in KNOWLEDGE_BASE_DIR.glob("*.md")
+    ]
+    if root_files:
+        documents["overview"] = root_files
+        #documents = root_files
+    # Category folders
+    for category_dir in KNOWLEDGE_BASE_DIR.iterdir():
+        if not category_dir.is_dir():
+            continue
+        documents[category_dir.name] = [
+            file.name
+            for file in category_dir.iterdir()
+            if file.is_file()
+        ]
+    print(documents)
+    return {
+        "documents": documents
+    }
+
+@router.get("/document/{category}/{filename}")
+def get_document(category: str,filename: str,):
+    file_path = (
+        KNOWLEDGE_BASE_DIR /
+        category /
+        filename
+    )
+    print("CATEGORY:", category)
+    print("FILENAME:", filename)
+    print("FILE PATH:", file_path)
+    print("EXISTS:", file_path.exists())
+    if not file_path.exists():
+        raise HTTPException(
+            status_code=404,
+            detail="Document not found"
+        )
+    return {
+        "filename": filename,
+        "content":
+            file_path.read_text(
+                encoding="utf-8"
+            )
     }

@@ -21,4 +21,4 @@ Stress occurs when demands exceed available resources. Long-term stress can affe
 ## Additional Resources
 - Stress tracking templates  
 - Guided relaxation audio  
-- Lifestyle habit checklists  
+- Lifestyle habit checklists
