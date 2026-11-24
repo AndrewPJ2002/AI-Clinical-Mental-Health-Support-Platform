@@ -15,6 +15,7 @@ from app.chat.service import (
 )
 from app.database import get_db
 from app.db_tables import User
+from app.load_kb import sync_knowledge_base
 from app.safety.action import risk_response
 from app.safety.service import record_red_flag_and_notify
 from app.schemas import MessageCreate
@@ -91,6 +92,17 @@ def create_chat(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    try:
+        sync_knowledge_base(db)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail=(
+                "The knowledge base could not be synchronized. "
+                "Please try starting a new chat again shortly."
+            ),
+        ) from exc
+
     conversation = create_chat_for_user(
         db,
         current_user.id,

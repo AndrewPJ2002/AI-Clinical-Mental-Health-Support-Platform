@@ -2,6 +2,7 @@
 from pathlib import Path
 
 from sqlalchemy import select
+from sqlalchemy.orm import Session
 
 from app.database import SessionLocal
 from app.db_tables import KnowledgeChunk
@@ -228,6 +229,67 @@ def rebuild_knowledge_base() -> None:
 
     finally:
         db.close()
+
+
+def sync_knowledge_base(db: Session) -> dict[str, int]:
+    """Synchronize stored chunks with the current Markdown files.
+
+    Unchanged documents keep their existing embeddings. Changed documents are
+    fully re-embedded, and documents removed from the directory are deleted.
+    """
+    if not KB_DIR.is_dir():
+        raise FileNotFoundError(
+            f"Knowledge-base directory not found: {KB_DIR}"
+        )
+
+    files = sorted(
+        file for file in KB_DIR.glob("*.md")
+        if file.name not in EXCLUDED_FILES
+    )
+    current_names = {file.name for file in files}
+    changed_records = []
+    changed_names = set()
+
+    for file in files:
+        chunks = list(dict.fromkeys(chunk_text(file.read_text(encoding="utf-8"))))
+        stored_chunks = {
+            row[0] for row in db.query(KnowledgeChunk.content)
+            .filter(KnowledgeChunk.source_document == file.name)
+            .all()
+        }
+
+        if stored_chunks == set(chunks):
+            continue
+
+        changed_names.add(file.name)
+        for chunk in chunks:
+            changed_records.append(KnowledgeChunk(
+                source_document=file.name,
+                content=chunk,
+                embedding=create_embedding(chunk),
+            ))
+
+    stored_names = {
+        row[0] for row in db.query(KnowledgeChunk.source_document).distinct().all()
+    }
+    removed_names = stored_names - current_names
+    names_to_replace = changed_names | removed_names
+
+    try:
+        if names_to_replace:
+            db.query(KnowledgeChunk).filter(
+                KnowledgeChunk.source_document.in_(names_to_replace)
+            ).delete(synchronize_session=False)
+            db.add_all(changed_records)
+            db.commit()
+    except Exception:
+        db.rollback()
+        raise
+
+    return {
+        "updated_documents": len(changed_names),
+        "removed_documents": len(removed_names),
+    }
 
 
 if __name__ == "__main__":
