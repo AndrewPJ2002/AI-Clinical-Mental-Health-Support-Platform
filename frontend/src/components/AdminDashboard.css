@@ -1516,9 +1516,49 @@
 .admin-kb-actions {
   margin-top: 1rem;
 }
+/*.admin-knowledge-source-item {
+  cursor: pointer;
+}*/
 
 .admin-knowledge-source-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 180px;
+  min-height: 44px;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 10px;
+  background-color: #7b2d4f;
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
   cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.admin-knowledge-source-item:hover {
+  background-color: #652342;
+  transform: translateY(-1px);
+}
+
+.admin-knowledge-source-item:active {
+  transform: translateY(0);
+}
+
+.admin-kb-category {
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  background: #f7f5f2;
+  border-radius: 12px;
+}
+
+.admin-knowledge-source-item.selected {
+  background-color: #3f7d54;
+  color: white;
+  border-color: #3f7d54;
 }
 
 .admin-dropdown-row {
@@ -1541,6 +1581,7 @@
   border-radius: 8px;
   border: 1px solid #ded6ce;
   cursor: pointer;
+  background: #733143;
 }
 
 .admin-source-button:hover {

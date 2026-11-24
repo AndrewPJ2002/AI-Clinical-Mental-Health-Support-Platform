@@ -1195,7 +1195,12 @@ function AdminDashboard({ onLogout }) {
                               <button
                                 type="button"
                                 key={file}
-                                className="admin-knowledge-source-item"
+                                /*className="admin-knowledge-source-item"*/
+                                className={
+                                  selectedSource === file
+                                    ? "admin-knowledge-source-item selected"
+                                    : "admin-knowledge-source-item"
+                                }
                                 onClick={() =>
                                   loadKnowledgeDocument(
                                     category,
